@@ -1,0 +1,257 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.material-symbols-rounded {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+  display: inline-block;
+  line-height: 1;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(215, 154, 42, 0.5);
+  border-radius: 3px;
+}
+
+/* ── Layout principal ───────────────────────────────────────────────────── */
+
+.app-root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* La zone principale scroll verticalement */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 24px;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Le tableau a son propre scroll horizontal */
+.table-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;
+}
+
+/* SideNav desktop */
+.side-nav {
+  flex-shrink: 0;
+}
+
+/* Indicateurs côté gauche : cachés sur mobile (pas de sidebar verticale) */
+.side-indicator {
+  display: block;
+}
+
+/* ── Responsive tablette (641px – 1024px) ───────────────────────────────── */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .side-nav {
+    width: 68px !important;
+  }
+  .main-content {
+    padding: 12px 16px;
+  }
+}
+
+/* ── Responsive mobile (≤ 640px) ────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Layout vertical : contenu en haut, nav en bas */
+  .app-layout {
+    flex-direction: column !important;
+  }
+
+  /* TopBar plus compact */
+  .top-bar {
+    height: 48px !important;
+  }
+
+  .top-bar-logo {
+    width: 52px !important;
+  }
+
+  .top-bar-title {
+    font-size: 17px !important;
+  }
+
+  /* SideNav devient barre horizontale en bas */
+  .side-nav {
+    width: 100% !important;
+    height: 58px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    border-right: none !important;
+    border-top: 1px solid rgba(215, 154, 42, 0.35) !important;
+    /* écrase le paddingTop/paddingBottom inline du composant */
+    padding: 0 10px !important;
+    order: 2;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    flex-shrink: 0 !important;
+    gap: 0 !important;
+  }
+
+  .side-indicator {
+    display: none !important;
+  }
+
+  .side-icon {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  .side-label {
+    font-size: 8px !important;
+    margin-top: 2px !important;
+  }
+
+  /* zone plateformes : ligne horizontale, prend la place disponible, scroll si besoin */
+  .side-nav-platforms {
+    flex: 1 !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding-inline: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    height: 100% !important;
+  }
+
+  /* séparateur horizontal desktop → caché en mode barre */
+  .side-sep {
+    display: none !important;
+  }
+
+  /* bouton + ajout plateforme : annule le marginTop desktop */
+  .side-nav-platforms .side-icon {
+    margin-top: 0 !important;
+  }
+
+  /* zone bas : collée à droite, fixe, centrée verticalement */
+  .side-nav-bottom {
+    flex-shrink: 0 !important;
+    flex-direction: row !important;
+    gap: 6px !important;
+    margin-top: 0 !important;
+    padding-left: 10px !important;
+    border-left: 1px solid rgba(215, 154, 42, 0.35) !important;
+    align-items: center !important;
+    height: 100% !important;
+  }
+
+  /* Contenu principal */
+  .main-content {
+    order: 1;
+    padding: 8px 8px 6px;
+    gap: 7px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Recommandation IA — texte plus petit */
+  .ai-header-text {
+    font-size: 12px !important;
+  }
+
+  /* Stats bar : compact scroll horizontal */
+  .stats-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap !important;
+    min-height: 48px !important;
+    padding-inline: 12px !important;
+    gap: 10px !important;
+    padding-block: 6px !important;
+  }
+
+  /* Tableau : scroll vertical seulement en mode carte mobile */
+  .table-scroll-area {
+    overflow-x: hidden;
+  }
+
+  /* Barre légende catégories masquée sur mobile */
+  .legend-bar {
+    display: none !important;
+  }
+
+  /* Auth screen */
+  .auth-card {
+    padding: 24px 20px !important;
+    border-radius: 18px !important;
+    margin: 16px;
+  }
+}
+
+/* ── Très petits écrans (≤ 380px) ───────────────────────────────────────── */
+@media (max-width: 380px) {
+  .main-content {
+    padding: 6px 6px 4px;
+  }
+
+  .top-bar {
+    height: 44px !important;
+  }
+
+  .side-nav {
+    height: 52px !important;
+  }
+}
