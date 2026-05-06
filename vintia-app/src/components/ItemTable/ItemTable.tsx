@@ -72,6 +72,91 @@ function useColWidths(items: Item[], platforms: Platform[]) {
 
 const HEADER_H = 44;
 
+// ── Dropdown filtre types ─────────────────────────────────────────────────────
+const TypeFilterDropdown: React.FC<{
+  activeTypeFilters: Set<ItemType>;
+  onToggle: (t: ItemType) => void;
+  onClear: () => void;
+}> = ({ activeTypeFilters, onToggle, onClear }) => {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const hasFilter = activeTypeFilters.size > 0;
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const label = hasFilter
+    ? Array.from(activeTypeFilters).map(t => TYPE_META[t].label).join(', ')
+    : 'Tous les types';
+
+  return (
+    <div ref={ref} style={{ position: 'relative', marginBottom: 8 }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', height: 36, borderRadius: 9,
+          border: `1px solid ${hasFilter ? hexAlpha(theme.accent.gold, 0.6) : hexAlpha(theme.accent.gold, 0.30)}`,
+          background: hasFilter ? hexAlpha(theme.accent.gold, 0.10) : hexAlpha('#FFFFFF', 0.60),
+          display: 'flex', alignItems: 'center', gap: 8, paddingInline: 12,
+          cursor: 'pointer', boxSizing: 'border-box',
+        }}
+      >
+        <span className="material-symbols-rounded" style={{ fontSize: 16, color: hasFilter ? theme.accent.gold : '#000000', flexShrink: 0 }}>filter_list</span>
+        <span style={{ flex: 1, textAlign: 'left', fontSize: 13, fontWeight: hasFilter ? 700 : 400, color: hasFilter ? theme.accent.gold : theme.text.primary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {label}
+        </span>
+        {hasFilter && (
+          <span
+            onMouseDown={e => { e.stopPropagation(); onClear(); setOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+          >
+            <span className="material-symbols-rounded" style={{ fontSize: 16, color: theme.accent.gold }}>close</span>
+          </span>
+        )}
+        <span className="material-symbols-rounded" style={{ fontSize: 16, color: '#000000', flexShrink: 0, transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>expand_more</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 40, left: 0, right: 0, zIndex: 999,
+          background: '#FFFFFF', borderRadius: 10,
+          border: `1px solid ${hexAlpha(theme.accent.gold, 0.25)}`,
+          boxShadow: `0 8px 24px ${hexAlpha('#000000', 0.12)}`,
+          overflow: 'hidden',
+        }}>
+          {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
+            const active = activeTypeFilters.has(type);
+            return (
+              <div
+                key={type}
+                onMouseDown={e => { e.preventDefault(); onToggle(type); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '10px 14px', cursor: 'pointer',
+                  background: active ? hexAlpha(meta.color, 0.10) : 'transparent',
+                  borderLeft: `3px solid ${active ? meta.color : 'transparent'}`,
+                }}
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: 16, color: meta.color, flexShrink: 0 }}>{meta.icon}</span>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: active ? 700 : 400, color: active ? meta.color : theme.text.primary }}>
+                  {meta.label}
+                </span>
+                {active && <span className="material-symbols-rounded" style={{ fontSize: 16, color: meta.color }}>check</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // En-tête colonne — largeur + hauteur identiques aux cellules de données
 const TH: React.FC<{ label: string; tooltip: string; width?: number; flex?: number; maxWidth?: number; align?: 'left' | 'center' | 'right'; gold?: boolean }> = ({
   label, tooltip, width, flex, maxWidth, align = 'left', gold,
@@ -208,47 +293,8 @@ const ItemTable: React.FC<ItemTableProps> = ({
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
-      {/* ── Barre types mobile (pleine largeur, scroll horizontal) ── */}
-      {isMobile && (
-        <div style={{ display: 'flex', overflowX: 'auto', gap: 5, alignItems: 'center', marginBottom: 8, scrollbarWidth: 'none' }}>
-          {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
-            const active = activeTypeFilters.has(type);
-            return (
-              <span
-                key={type}
-                onClick={() => toggleTypeFilter(type)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
-                  background: active ? meta.color : hexAlpha(meta.color, 0.12),
-                  color: active ? '#FFFFFF' : meta.color,
-                  border: `1px solid ${meta.color}`,
-                  borderRadius: 7, padding: '3px 8px',
-                  fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
-                <span className="material-symbols-rounded" style={{ fontSize: 13 }}>{meta.icon}</span>
-                {meta.label}
-                {active && <span className="material-symbols-rounded" style={{ fontSize: 11 }}>close</span>}
-              </span>
-            );
-          })}
-          {activeTypeFilters.size > 0 && (
-            <button
-              onClick={() => clearTypeFilters()}
-              style={{
-                flexShrink: 0, height: 26, paddingInline: 8, borderRadius: 7,
-                border: `1px solid ${hexAlpha(theme.text.secondary, 0.35)}`,
-                background: hexAlpha(theme.text.secondary, 0.08), cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 4,
-                fontSize: 11, fontWeight: 600, color: theme.text.secondary,
-              }}
-            >
-              <span className="material-symbols-rounded" style={{ fontSize: 13 }}>filter_alt_off</span>
-            </button>
-          )}
-        </div>
-      )}
+      {/* ── Dropdown filtre types (mobile) ── */}
+      {isMobile && <TypeFilterDropdown activeTypeFilters={activeTypeFilters} onToggle={toggleTypeFilter} onClear={clearTypeFilters} />}
 
       {/* ── Barre légende + bouton ajout ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
