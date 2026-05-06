@@ -96,7 +96,7 @@ const TypeFilterDropdown: React.FC<{
     : 'Tous les types';
 
   return (
-    <div ref={ref} style={{ position: 'relative', marginBottom: 8 }}>
+    <div ref={ref} style={{ position: 'relative', flex: 1, minWidth: 0 }}>
       <button
         onClick={() => setOpen(o => !o)}
         style={{
@@ -293,11 +293,9 @@ const ItemTable: React.FC<ItemTableProps> = ({
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
 
-      {/* ── Dropdown filtre types (mobile) ── */}
-      {isMobile && <TypeFilterDropdown activeTypeFilters={activeTypeFilters} onToggle={toggleTypeFilter} onClear={clearTypeFilters} />}
-
       {/* ── Barre légende + bouton ajout ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+        {isMobile && <TypeFilterDropdown activeTypeFilters={activeTypeFilters} onToggle={toggleTypeFilter} onClear={clearTypeFilters} />}
         {!isMobile && (
           <div className="legend-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
             {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
@@ -356,7 +354,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
             color: theme.accent.buttonText, fontSize: isMobile ? 12 : 13, fontWeight: 700,
             paddingInline: isMobile ? 14 : 18,
             display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,
-            marginLeft: isMobile ? 'auto' : undefined,
+            marginLeft: undefined,
             boxShadow: newRow ? 'none' : `0 4px 12px ${hexAlpha(theme.accent.gold, 0.28)}`,
             opacity: newRow ? 0.6 : 1,
           }}
