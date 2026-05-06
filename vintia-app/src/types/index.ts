@@ -16,6 +16,7 @@ export type ItemType =
   | 'jouets'
   | 'cosmetique'
   | 'alimentation'
+  | 'business'
   | 'autre';
 
 export interface Item {

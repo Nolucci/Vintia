@@ -44,6 +44,7 @@ export const TYPE_META: Record<ItemType, { color: string; label: string; icon: s
   jouets:       { color: '#FCA5A5', label: 'Jouets',       icon: 'toys',          tooltip: 'Jouets — enfants, figurines, jeux de société...' },
   cosmetique:   { color: '#F9A8D4', label: 'Cosmétique',   icon: 'spa',           tooltip: 'Cosmétique — parfums, soins, maquillage...' },
   alimentation: { color: '#86EFAC', label: 'Alimentation', icon: 'restaurant',    tooltip: 'Alimentation — produits alimentaires, boissons...' },
+  business:     { color: '#0EA5E9', label: 'Business',     icon: 'trending_up',   tooltip: 'Business — articles suivis pour la performance commerciale' },
   autre:        { color: '#94A3B8', label: 'Autre',        icon: 'category',      tooltip: 'Autre — catégorie non listée' },
 };
 

@@ -103,15 +103,35 @@ interface ItemTableProps {
   onDeleteItem: (id: string) => void;
   onRequestPerplexity?: (item: Item) => void;
   onOpenReport?: (item: Item) => void;
+  activeTypeFilters?: Set<ItemType>;
+  onActiveTypeFiltersChange?: (filters: Set<ItemType>) => void;
 }
 
-const ItemTable: React.FC<ItemTableProps> = ({ items, platforms, onSaveItem, onDeleteItem, onRequestPerplexity, onOpenReport }) => {
+const ItemTable: React.FC<ItemTableProps> = ({
+  items, platforms, onSaveItem, onDeleteItem, onRequestPerplexity, onOpenReport,
+  activeTypeFilters: externalFilters, onActiveTypeFiltersChange,
+}) => {
   const [newRow, setNewRow] = useState<Item | null>(null);
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<'date' | 'prix' | 'marge' | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [internalFilters, setInternalFilters] = useState<Set<ItemType>>(new Set());
+
+  const activeTypeFilters = externalFilters ?? internalFilters;
   const COL = useColWidths(items, platforms);
   const isMobile = useIsMobile();
+
+  const toggleTypeFilter = (type: ItemType) => {
+    const next = new Set(activeTypeFilters);
+    if (next.has(type)) next.delete(type); else next.add(type);
+    if (onActiveTypeFiltersChange) onActiveTypeFiltersChange(next);
+    else setInternalFilters(next);
+  };
+
+  const clearTypeFilters = () => {
+    if (onActiveTypeFiltersChange) onActiveTypeFiltersChange(new Set());
+    else setInternalFilters(new Set());
+  };
 
   const childIds = new Set(items.flatMap(i => i.compareAvec));
   const roots = items.filter(i => !childIds.has(i.id));
@@ -130,11 +150,14 @@ const ItemTable: React.FC<ItemTableProps> = ({ items, platforms, onSaveItem, onD
     return null;
   };
 
-  const filtered = roots.filter(r =>
-    r.titre.toLowerCase().includes(search.toLowerCase()) ||
-    r.type.toLowerCase().includes(search.toLowerCase()) ||
-    r.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = roots.filter(r => {
+    if (activeTypeFilters.size > 0 && !activeTypeFilters.has(r.type)) return false;
+    return (
+      r.titre.toLowerCase().includes(search.toLowerCase()) ||
+      r.type.toLowerCase().includes(search.toLowerCase()) ||
+      r.description?.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   const sorted = sortKey ? [...filtered].sort((a, b) => {
     let va = 0, vb = 0;
@@ -188,22 +211,47 @@ const ItemTable: React.FC<ItemTableProps> = ({ items, platforms, onSaveItem, onD
       {/* ── Barre légende + bouton ajout ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
         {!isMobile && (
-          <div className="legend-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-            {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => (
-              <Tooltip key={type} text={meta.tooltip}>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5,
-                  background: hexAlpha(meta.color, 0.12),
-                  color: meta.color,
-                  border: `1px solid ${meta.color}`,
-                  borderRadius: 7, padding: '4px 10px',
-                  fontSize: 12, fontWeight: 700, cursor: 'default',
-                }}>
-                  <span className="material-symbols-rounded" style={{ fontSize: 14 }}>{meta.icon}</span>
-                  {meta.label}
-                </span>
+          <div className="legend-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
+            {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
+              const active = activeTypeFilters.has(type);
+              return (
+                <Tooltip key={type} text={active ? `Retirer le filtre "${meta.label}"` : `Filtrer sur "${meta.label}"`}>
+                  <span
+                    onClick={() => toggleTypeFilter(type)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      background: active ? meta.color : hexAlpha(meta.color, 0.12),
+                      color: active ? '#FFFFFF' : meta.color,
+                      border: `1px solid ${meta.color}`,
+                      borderRadius: 7, padding: '4px 10px',
+                      fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                      transition: 'background 0.14s, color 0.14s',
+                      userSelect: 'none',
+                    }}
+                  >
+                    <span className="material-symbols-rounded" style={{ fontSize: 14 }}>{meta.icon}</span>
+                    {meta.label}
+                    {active && <span className="material-symbols-rounded" style={{ fontSize: 12, marginLeft: 2 }}>close</span>}
+                  </span>
+                </Tooltip>
+              );
+            })}
+            {activeTypeFilters.size > 0 && (
+              <Tooltip text="Effacer tous les filtres de type">
+                <button
+                  onClick={() => clearTypeFilters()}
+                  style={{
+                    height: 26, paddingInline: 8, borderRadius: 7, border: `1px solid ${hexAlpha(theme.text.secondary, 0.35)}`,
+                    background: hexAlpha(theme.text.secondary, 0.08), cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    fontSize: 11, fontWeight: 600, color: theme.text.secondary,
+                  }}
+                >
+                  <span className="material-symbols-rounded" style={{ fontSize: 13 }}>filter_alt_off</span>
+                  Tout
+                </button>
               </Tooltip>
-            ))}
+            )}
           </div>
         )}
 

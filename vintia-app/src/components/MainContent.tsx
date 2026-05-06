@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Item, Platform } from '../types';
+import type { Item, ItemType, Platform } from '../types';
 import type { DailyRecommendation } from '../services/dailyRecommendation';
 import { theme, hexAlpha } from '../theme';
 import ItemTable from './ItemTable/ItemTable';
@@ -273,6 +273,12 @@ const MainContent: React.FC<MainContentProps> = ({
   dailyReco, dailyRecoLoading, dailyRecoError, onRefreshReco,
   isLoading, onSaveItem, onDeleteItem, onRequestPerplexity, onOpenReport,
 }) => {
+  const [activeTypeFilters, setActiveTypeFilters] = useState<Set<ItemType>>(new Set());
+
+  const statsItems = activeTypeFilters.size > 0
+    ? items.filter(i => activeTypeFilters.has(i.type))
+    : items;
+
   return (
     <div className="main-content" data-testid="tutorial-main-content" style={{ minWidth: 0 }}>
       <AIHeader
@@ -281,7 +287,7 @@ const MainContent: React.FC<MainContentProps> = ({
         error={dailyRecoError}
         onRefresh={onRefreshReco}
       />
-      <StatsBar items={items} />
+      <StatsBar items={statsItems} />
       <ItemTable
         items={items}
         platforms={platforms}
@@ -289,6 +295,8 @@ const MainContent: React.FC<MainContentProps> = ({
         onDeleteItem={onDeleteItem}
         onRequestPerplexity={onRequestPerplexity}
         onOpenReport={onOpenReport}
+        activeTypeFilters={activeTypeFilters}
+        onActiveTypeFiltersChange={setActiveTypeFilters}
       />
     </div>
   );
