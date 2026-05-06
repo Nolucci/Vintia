@@ -210,6 +210,46 @@ const ItemTable: React.FC<ItemTableProps> = ({
 
       {/* ── Barre légende + bouton ajout ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+        {isMobile && (
+          <div style={{ display: 'flex', overflowX: 'auto', gap: 5, alignItems: 'center', flex: 1, WebkitOverflowScrolling: 'touch' as React.CSSProperties['WebkitOverflowScrolling'], scrollbarWidth: 'none' }}>
+            {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
+              const active = activeTypeFilters.has(type);
+              return (
+                <span
+                  key={type}
+                  onClick={() => toggleTypeFilter(type)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
+                    background: active ? meta.color : hexAlpha(meta.color, 0.12),
+                    color: active ? '#FFFFFF' : meta.color,
+                    border: `1px solid ${meta.color}`,
+                    borderRadius: 7, padding: '3px 8px',
+                    fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  <span className="material-symbols-rounded" style={{ fontSize: 13 }}>{meta.icon}</span>
+                  {meta.label}
+                  {active && <span className="material-symbols-rounded" style={{ fontSize: 11 }}>close</span>}
+                </span>
+              );
+            })}
+            {activeTypeFilters.size > 0 && (
+              <button
+                onClick={() => clearTypeFilters()}
+                style={{
+                  flexShrink: 0, height: 26, paddingInline: 8, borderRadius: 7,
+                  border: `1px solid ${hexAlpha(theme.text.secondary, 0.35)}`,
+                  background: hexAlpha(theme.text.secondary, 0.08), cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  fontSize: 11, fontWeight: 600, color: theme.text.secondary,
+                }}
+              >
+                <span className="material-symbols-rounded" style={{ fontSize: 13 }}>filter_alt_off</span>
+              </button>
+            )}
+          </div>
+        )}
         {!isMobile && (
           <div className="legend-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
             {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
