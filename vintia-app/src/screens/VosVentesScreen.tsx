@@ -108,7 +108,7 @@ const VosVentesScreen: React.FC<VosVentesScreenProps> = ({
       ...updated,
       id: isNew ? generateId() : updated.id,
       dateAjout: updated.dateAjout ?? new Date().toISOString(),
-      marge: updated.prixVendu !== null && updated.prixAchat !== null
+      marge: updated.transaction === 'vente' && updated.prixVendu !== null && updated.prixAchat !== null
         ? updated.prixVendu - updated.prixAchat
         : null,
     };
