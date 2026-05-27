@@ -150,7 +150,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
       if (k === 'prixVendu' || k === 'prixAchat') {
         const pa = k === 'prixAchat' ? (v as number | null) : next.prixAchat;
         const pv = k === 'prixVendu' ? (v as number | null) : next.prixVendu;
-        next.marge = next.transaction === 'vente' && pa !== null && pv !== null ? pv - pa : null;
+        next.marge = pa !== null && pv !== null ? pv - pa : null;
       }
       return next;
     });

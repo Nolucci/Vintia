@@ -226,9 +226,8 @@ const ItemTable: React.FC<ItemTableProps> = ({
     if (updated.id.startsWith('new_')) setNewRow(null);
   };
 
-  // Rentabilité estimée d'un item : marge réelle > marge estimée > null
+  // Marge réelle uniquement : prix de vente (vendu) - prix d'achat
   const rentabilite = (i: Item): number | null => {
-    if (i.transaction !== 'vente') return null;
     if (i.marge !== null) return i.marge;
     if (i.prixVendu !== null && i.prixAchat !== null) return i.prixVendu - i.prixAchat;
     return null;
