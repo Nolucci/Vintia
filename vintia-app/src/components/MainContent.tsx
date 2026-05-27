@@ -24,7 +24,7 @@ const StatsBar: React.FC<{ items: Item[] }> = ({ items }) => {
   const ventes     = actifs.filter(i => i.transaction === 'vente');
   const attentes   = actifs.filter(i => i.transaction === 'attente');
   const vendus     = actifs.filter(i => i.prixVendu !== null);
-  const totalVendu = ventes.reduce((s, i) => s + (i.prixVendu ?? i.prixVente ?? 0), 0);
+  const totalVendu = ventes.reduce((s, i) => s + (i.prixVendu ?? 0), 0);
   const totalAchat = actifs.reduce((s, i) => s + (i.prixAchat ?? 0), 0);
   const totalMarge = totalVendu - totalAchat;
 
