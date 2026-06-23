@@ -1,19 +1,18 @@
 import React from 'react';
 import { theme, hexAlpha } from '../theme';
 import { useTutorial } from '../contexts/TutorialContext';
+import { useLang } from '../contexts/LanguageContext';
 import Tooltip from './ItemTable/Tooltip';
 
 const HelpButton: React.FC = () => {
   const { startTutorial, isFirstVisit } = useTutorial();
-
-  const handleClick = () => {
-    startTutorial();
-  };
+  const { t } = useLang();
+  const handleStart = () => startTutorial(t);
 
   return (
-    <Tooltip text={isFirstVisit ? "Démarrer le tutoriel" : "Revoir le tutoriel"}>
+    <Tooltip text={isFirstVisit ? t.startTutorial : t.reviewTutorial}>
       <button
-        onClick={handleClick}
+        onClick={handleStart}
         style={{
           width: 36, height: 36, borderRadius: 10,
           display: 'flex', alignItems: 'center', justifyContent: 'center',

@@ -4,12 +4,14 @@ import { supabase } from './lib/supabase';
 import AuthScreen from './screens/AuthScreen';
 import VosVentesScreen from './screens/VosVentesScreen';
 import { TutorialProvider, useTutorial } from './contexts/TutorialContext';
+import { LanguageProvider, useLang } from './contexts/LanguageContext';
 import TutorialOverlay from './components/TutorialOverlay';
 
 function AppContent() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const { isFirstVisit, startTutorial } = useTutorial();
+  const { t } = useLang();
 
   useEffect(() => {
     // Récupère la session existante au démarrage
@@ -31,11 +33,11 @@ function AppContent() {
     if (session && isFirstVisit) {
       // Petite temporisation pour s'assurer que l'UI est prête
       const timer = setTimeout(() => {
-        startTutorial();
+        startTutorial(t);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [session, isFirstVisit, startTutorial]);
+  }, [session, isFirstVisit, startTutorial, t]);
 
   if (loading) return null;
 
@@ -64,9 +66,11 @@ function AppContent() {
 
 function App() {
   return (
-    <TutorialProvider>
-      <AppContent />
-    </TutorialProvider>
+    <LanguageProvider>
+      <TutorialProvider>
+        <AppContent />
+      </TutorialProvider>
+    </LanguageProvider>
   );
 }
 

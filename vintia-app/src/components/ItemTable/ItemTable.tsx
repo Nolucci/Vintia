@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Item, ItemType, Platform } from '../../types';
 import { theme, hexAlpha } from '../../theme';
-import { COL_MIN, TYPE_META, estimateTextWidth } from './constants';
+import { COL_MIN, getTypeMeta, estimateTextWidth } from './constants';
 import InlineRow from './InlineRow';
 import Tooltip from './Tooltip';
+import { useLang } from '../../contexts/LanguageContext';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
@@ -37,22 +38,20 @@ const newBlankItem = (): Item => ({
 });
 
 // Calcul des largeurs de colonnes selon le contenu le plus long
-function useColWidths(items: Item[], platforms: Platform[]) {
+function useColWidths(items: Item[], platforms: Platform[], typeMeta: ReturnType<typeof getTypeMeta>) {
   return useMemo(() => {
     const priceW = (v: number | null) => v !== null ? estimateTextWidth(`${v.toFixed(2)} €`, 13, true) : 0;
     const margeW = (v: number | null) => v !== null ? estimateTextWidth(`${v >= 0 ? '+' : ''}${v.toFixed(2)} €`, 13, true) : 0;
 
-    let type        = estimateTextWidth('Catégorie', 12, true);
+    let type        = estimateTextWidth('Category', 12, true);
     let finances    = COL_MIN.finances;
     let ia          = COL_MIN.ia;
 
     for (const item of items) {
-      const meta = TYPE_META[item.type];
+      const meta = typeMeta[item.type];
       type     = Math.max(type, estimateTextWidth(meta.label, 12, true) + 28);
-      // finances : la ligne la plus large entre achat, vente, vendu, marge
-      const fw = Math.max(priceW(item.prixAchat), priceW(item.prixVente), priceW(item.prixVendu), margeW(item.marge)) + 60; // +60 pour le label inline
+      const fw = Math.max(priceW(item.prixAchat), priceW(item.prixVente), priceW(item.prixVendu), margeW(item.marge)) + 60;
       finances = Math.max(finances, fw);
-      // ia : prixIA + texte court
       const iw = priceW(item.prixIACible) + Math.min(estimateTextWidth(item.recommandations, 11, false), 180);
       ia       = Math.max(ia, iw);
     }
@@ -67,6 +66,7 @@ function useColWidths(items: Item[], platforms: Platform[]) {
       ia:          Math.max(COL_MIN.ia, ia),
       actions:     COL_MIN.actions,
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, platforms]);
 }
 
@@ -78,6 +78,8 @@ const TypeFilterDropdown: React.FC<{
   onToggle: (t: ItemType) => void;
   onClear: () => void;
 }> = ({ activeTypeFilters, onToggle, onClear }) => {
+  const { t } = useLang();
+  const typeMeta = getTypeMeta(t);
   const [open, setOpen] = useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const hasFilter = activeTypeFilters.size > 0;
@@ -92,8 +94,8 @@ const TypeFilterDropdown: React.FC<{
   }, [open]);
 
   const label = hasFilter
-    ? Array.from(activeTypeFilters).map(t => TYPE_META[t].label).join(', ')
-    : 'Tous les types';
+    ? Array.from(activeTypeFilters).map(type => typeMeta[type].label).join(', ')
+    : t.tableFilterAll;
 
   return (
     <div ref={ref} style={{ position: 'relative', flex: 1, minWidth: 0 }}>
@@ -130,7 +132,7 @@ const TypeFilterDropdown: React.FC<{
           boxShadow: `0 8px 24px ${hexAlpha('#000000', 0.12)}`,
           overflow: 'hidden',
         }}>
-          {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
+          {(Object.entries(typeMeta) as [ItemType, ReturnType<typeof getTypeMeta>[ItemType]][]).map(([type, meta]) => {
             const active = activeTypeFilters.has(type);
             return (
               <div
@@ -196,6 +198,8 @@ const ItemTable: React.FC<ItemTableProps> = ({
   items, platforms, onSaveItem, onDeleteItem, onRequestPerplexity, onOpenReport,
   activeTypeFilters: externalFilters, onActiveTypeFiltersChange,
 }) => {
+  const { t } = useLang();
+  const typeMeta = getTypeMeta(t);
   const [newRow, setNewRow] = useState<Item | null>(null);
   const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<'date' | 'prix' | 'marge' | null>(null);
@@ -203,7 +207,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
   const [internalFilters, setInternalFilters] = useState<Set<ItemType>>(new Set());
 
   const activeTypeFilters = externalFilters ?? internalFilters;
-  const COL = useColWidths(items, platforms);
+  const COL = useColWidths(items, platforms, typeMeta);
   const isMobile = useIsMobile();
 
   const toggleTypeFilter = (type: ItemType) => {
@@ -296,10 +300,10 @@ const ItemTable: React.FC<ItemTableProps> = ({
         {isMobile && <TypeFilterDropdown activeTypeFilters={activeTypeFilters} onToggle={toggleTypeFilter} onClear={clearTypeFilters} />}
         {!isMobile && (
           <div className="legend-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: 5, alignItems: 'center' }}>
-            {(Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][]).map(([type, meta]) => {
+            {(Object.entries(typeMeta) as [ItemType, ReturnType<typeof getTypeMeta>[ItemType]][]).map(([type, meta]) => {
               const active = activeTypeFilters.has(type);
               return (
-                <Tooltip key={type} text={active ? `Retirer le filtre "${meta.label}"` : `Filtrer sur "${meta.label}"`}>
+                <Tooltip key={type} text={active ? `✕ ${meta.label}` : meta.label}>
                   <span
                     onClick={() => toggleTypeFilter(type)}
                     style={{
@@ -321,7 +325,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
               );
             })}
             {activeTypeFilters.size > 0 && (
-              <Tooltip text="Effacer tous les filtres de type">
+              <Tooltip text={t.tableFilterClear}>
                 <button
                   onClick={() => clearTypeFilters()}
                   style={{
@@ -332,7 +336,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
                   }}
                 >
                   <span className="material-symbols-rounded" style={{ fontSize: 13 }}>filter_alt_off</span>
-                  Tout
+                  {t.tableFilterAll}
                 </button>
               </Tooltip>
             )}
@@ -358,7 +362,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
           }}
         >
           <span className="material-symbols-rounded" style={{ fontSize: isMobile ? 16 : 18 }}>add</span>
-          {isMobile ? 'Ajouter' : 'Nouvel article'}
+          {t.tableAddItem}
         </button>
       </div>
 
@@ -374,7 +378,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Rechercher un article..."
+          placeholder={`${t.tableAddItem}...`}
           style={{
             flex: 1, border: 'none', background: 'transparent', outline: 'none',
             fontSize: 13, color: theme.text.primary,
@@ -419,12 +423,12 @@ const ItemTable: React.FC<ItemTableProps> = ({
           marginBottom: 6, flexShrink: 0,
           boxSizing: 'border-box',
         }}>
-          <TH label="±"          tooltip="Statut : + vente · − achat · ? en attente · ✕ perdu"   width={COL.transaction} align="center" />
-          <TH label="Catégorie"  tooltip="Catégorie / type de l'objet"                              width={COL.type} />
-          <TH label="Titre"      tooltip="Double-cliquez sur une ligne pour la modifier"            flex={1} />
-          <TH label="🔗"         tooltip="Lien vers l'annonce"                                      width={COL.url}         align="center" />
+          <TH label="±"          tooltip={`${t.transactionVente} · ${t.transactionAchat} · ${t.transactionAttente} · ${t.transactionPerdu}`}   width={COL.transaction} align="center" />
+          <TH label={t.tableColType}   tooltip={t.tableColType}    width={COL.type} />
+          <TH label={t.tableColTitle}  tooltip={t.rowEdit}         flex={1} />
+          <TH label="🔗"               tooltip={t.rowOpenUrl}      width={COL.url}  align="center" />
           <div data-testid="tutorial-col-prices" style={{ width: COL.finances, flexShrink: 0, height: HEADER_H, display: 'flex', alignItems: 'center', padding: '0 4px', gap: 6, boxSizing: 'border-box' }}>
-            {(['Achat', 'Proposition', 'Vente'] as const).map((lbl, i) => (
+            {([t.rowPriceAchat, t.rowPriceVente, t.rowPriceVendu] as const).map((lbl, i) => (
               <React.Fragment key={lbl}>
                 {i > 0 && <div style={{ width: 1, height: 16, background: hexAlpha(theme.accent.gold, 0.20), flexShrink: 0 }} />}
                 <span style={{ flex: 1, textAlign: 'right', fontSize: 11, fontWeight: 700, color: theme.text.primary, letterSpacing: 0.5, textTransform: 'uppercase', userSelect: 'none' }}>
@@ -433,9 +437,9 @@ const ItemTable: React.FC<ItemTableProps> = ({
               </React.Fragment>
             ))}
           </div>
-          <TH label="Comp."      tooltip="Articles liés pour comparaison de prix"                   width={COL.compareAvec} align="center" />
+          <TH label={t.tableColCompare} tooltip={t.rowCompareWith} width={COL.compareAvec} align="center" />
           <div style={{ width: 3, alignSelf: 'stretch', background: hexAlpha(theme.accent.gold, 0.22), margin: '6px 0', flexShrink: 0, borderRadius: 2 }} />
-          <TH label="IA" tooltip="Prix cible IA + recommandation" width={COL.ia} gold />
+          <TH label={t.tableColIA} tooltip={`${t.rowPriceTarget} + ${t.rowRecommendation}`} width={COL.ia} gold />
           <div style={{ width: COL.actions, flexShrink: 0 }} />
         </div>
       )}
@@ -455,7 +459,7 @@ const ItemTable: React.FC<ItemTableProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 200, gap: 10 }}>
               <span className="material-symbols-rounded" style={{ fontSize: 44, color: hexAlpha(theme.text.secondary, 0.22) }}>inventory_2</span>
               <span style={{ fontSize: 14, color: hexAlpha(theme.text.secondary, 0.45), textAlign: 'center', paddingInline: 16 }}>
-                Aucun article — appuyez sur «Ajouter» pour commencer
+                {t.tableNoItemsHint}
               </span>
             </div>
           ) : (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Joyride, type Step, type EventData, STATUS } from 'react-joyride';
 import { useTutorial } from '../contexts/TutorialContext';
+import { useLang } from '../contexts/LanguageContext';
 import { theme } from '../theme';
 
 interface TutorialOverlayProps {
@@ -17,6 +18,7 @@ const tag: React.CSSProperties = {
 
 const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip }) => {
   const { isTutorialActive, setIsTutorialActive, markTutorialSeen, cleanupMocks } = useTutorial();
+  const { t } = useLang();
 
   const handleCallback = (data: EventData) => {
     const { status } = data;
@@ -51,11 +53,10 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
         <div style={{ textAlign: 'center', padding: '8px 0' }}>
           {iconBadge('auto_awesome')}
           <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: '#1A2332' }}>
-            Bienvenue sur Vintia 🎉
+            {t.tutorialWelcomeTitle}
           </h3>
           <p style={{ margin: 0, fontSize: 13, color: '#6B7280', lineHeight: 1.6 }}>
-            Je vais vous guider à travers les principales fonctionnalités.
-            Deux articles d'exemple ont été ajoutés pour illustrer le tutoriel.
+            {t.tutorialWelcomeBody}
           </p>
         </div>
       ),
@@ -66,8 +67,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-all-items"]',
       content: (
         <div>
-          <h4 style={h4}>Vue globale</h4>
-          <p style={p}>Cliquez ici pour afficher tous vos articles, quelle que soit la plateforme. C'est votre vue d'ensemble.</p>
+          <h4 style={h4}>{t.tutorialAllTitle}</h4>
+          <p style={p}>{t.tutorialAllBody}</p>
         </div>
       ),
       placement: 'right',
@@ -78,8 +79,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-add-platform"]',
       content: (
         <div>
-          <h4 style={h4}>Ajouter une plateforme</h4>
-          <p style={p}>Connectez Vinted, Leboncoin, eBay ou autres pour synchroniser vos ventes. Vous pouvez les réorganiser par glisser-déposer.</p>
+          <h4 style={h4}>{t.tutorialAddPlatTitle}</h4>
+          <p style={p}>{t.tutorialAddPlatBody}</p>
         </div>
       ),
       placement: 'right',
@@ -90,11 +91,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-refresh-reco"]',
       content: (
         <div>
-          <h4 style={h4}>Recommandation IA du jour</h4>
-          <p style={p}>
-            Votre IA analyse connectée à vos données vous propose chaque jour des conseils personnalisés.
-            Cliquez sur "Actualiser" pour régénérer l'analyse.
-          </p>
+          <h4 style={h4}>{t.tutorialRecoTitle}</h4>
+          <p style={p}>{t.tutorialRecoBody}</p>
         </div>
       ),
       placement: 'bottom',
@@ -105,16 +103,16 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-stats-bar"]',
       content: (
         <div>
-          <h4 style={h4}>Vos chiffres en un coup d'œil</h4>
-          <p style={p}>Ce bandeau résume votre activité en temps réel :</p>
+          <h4 style={h4}>{t.tutorialStatsTitle}</h4>
+          <p style={p}>{t.tutorialStatsBody}</p>
           <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <div><span style={{ ...tag, background: '#F3F4F6', color: '#374151' }}>Articles</span><span style={p}>total actifs</span></div>
-            <div><span style={{ ...tag, background: '#FEE2E2', color: '#DC2626' }}>Achats</span><span style={p}>articles achetés (−)</span></div>
-            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>Ventes</span><span style={p}>mis en vente (+)</span></div>
-            <div><span style={{ ...tag, background: '#FEF9C3', color: '#B45309' }}>En attente</span><span style={p}>en cours d'étude</span></div>
-            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>CA</span><span style={p}>chiffre d'affaires réalisé</span></div>
-            <div><span style={{ ...tag, background: '#F3F4F6', color: '#374151' }}>Total achats</span><span style={p}>dépenses cumulées</span></div>
-            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>Marge</span><span style={p}>CA − Achats</span></div>
+            <div><span style={{ ...tag, background: '#F3F4F6', color: '#374151' }}>{t.tutorialStatsArticles}</span><span style={p}>{t.tutorialStatsArticlesDesc}</span></div>
+            <div><span style={{ ...tag, background: '#FEE2E2', color: '#DC2626' }}>{t.tutorialStatsAchats}</span><span style={p}>{t.tutorialStatsAchatsDesc}</span></div>
+            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>{t.tutorialStatsVentes}</span><span style={p}>{t.tutorialStatsVentesDesc}</span></div>
+            <div><span style={{ ...tag, background: '#FEF9C3', color: '#B45309' }}>{t.tutorialStatsAttente}</span><span style={p}>{t.tutorialStatsAttenteDesc}</span></div>
+            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>{t.tutorialStatsCA}</span><span style={p}>{t.tutorialStatsCADesc}</span></div>
+            <div><span style={{ ...tag, background: '#F3F4F6', color: '#374151' }}>{t.tutorialStatsTotalAchats}</span><span style={p}>{t.tutorialStatsTotalAchatsDesc}</span></div>
+            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>{t.tutorialStatsMarge}</span><span style={p}>{t.tutorialStatsMargeDesc}</span></div>
           </div>
         </div>
       ),
@@ -126,13 +124,13 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-col-prices"]',
       content: (
         <div>
-          <h4 style={h4}>Les trois prix d'un article</h4>
+          <h4 style={h4}>{t.tutorialPricesTitle}</h4>
           <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <div><span style={{ ...tag, background: '#FEE2E2', color: '#DC2626' }}>Achat</span><span style={p}>prix payé pour acquérir l'objet</span></div>
-            <div><span style={{ ...tag, background: '#FEF9C3', color: '#B45309' }}>Proposition</span><span style={p}>prix affiché sur votre annonce</span></div>
-            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>Vente</span><span style={p}>prix réellement encaissé à la vente</span></div>
+            <div><span style={{ ...tag, background: '#FEE2E2', color: '#DC2626' }}>{t.tutorialPricesAchat}</span><span style={p}>{t.tutorialPricesAchatDesc}</span></div>
+            <div><span style={{ ...tag, background: '#FEF9C3', color: '#B45309' }}>{t.tutorialPricesPropo}</span><span style={p}>{t.tutorialPricesPropoDesc}</span></div>
+            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>{t.tutorialPricesVente}</span><span style={p}>{t.tutorialPricesVenteDesc}</span></div>
           </div>
-          <p style={{ ...p, marginTop: 8 }}>La marge se calcule automatiquement : Vente − Achat.</p>
+          <p style={{ ...p, marginTop: 8 }}>{t.tutorialPricesNote}</p>
         </div>
       ),
       placement: 'bottom',
@@ -143,14 +141,9 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-add-item"]',
       content: (
         <div>
-          <h4 style={h4}>Ajouter un article</h4>
-          <p style={p}>
-            Cliquez ici pour créer un nouvel article. Une ligne de saisie apparaît directement dans le tableau.
-          </p>
-          <p style={{ ...p, marginTop: 6 }}>
-            Renseignez le titre, le prix d'achat et le prix de proposition.
-            Plus la fiche est complète, plus l'analyse IA sera précise.
-          </p>
+          <h4 style={h4}>{t.tutorialAddItemTitle}</h4>
+          <p style={p}>{t.tutorialAddItemBody}</p>
+          <p style={{ ...p, marginTop: 6 }}>{t.tutorialAddItemNote}</p>
         </div>
       ),
       placement: 'bottom',
@@ -162,11 +155,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       targetWaitTimeout: 3000,
       content: (
         <div>
-          <h4 style={h4}>Colonne IA</h4>
-          <p style={p}>
-            Affiche le prix cible suggéré par l'IA et une recommandation courte (baisser, maintenir, relancer...).
-            Elle se remplit après une analyse sur cet article.
-          </p>
+          <h4 style={h4}>{t.tutorialIAColTitle}</h4>
+          <p style={p}>{t.tutorialIAColBody}</p>
         </div>
       ),
       placement: 'left',
@@ -178,11 +168,9 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       targetWaitTimeout: 3000,
       content: (
         <div>
-          <h4 style={h4}>Analyse marché</h4>
-          <p style={p}>
-            Lance une analyse IA sur cet article : prix moyens constatés sur le marché, niveau de demande, tendances et conseils de prix personnalisés.
-          </p>
-          <p style={{ ...p, marginTop: 6 }}>Nécessite une clé API configurée dans les Paramètres.</p>
+          <h4 style={h4}>{t.tutorialAnalyzeTitle}</h4>
+          <p style={p}>{t.tutorialAnalyzeBody}</p>
+          <p style={{ ...p, marginTop: 6 }}>{t.tutorialAnalyzeNote}</p>
         </div>
       ),
       placement: 'left',
@@ -194,13 +182,9 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       targetWaitTimeout: 3000,
       content: (
         <div>
-          <h4 style={h4}>Rapport IA complet</h4>
-          <p style={p}>
-            Après une analyse, ce bouton donne accès au rapport détaillé : fourchette de prix, popularité, conseils de mise en valeur et estimation de délai de vente.
-          </p>
-          <p style={{ ...p, marginTop: 6 }}>
-            L'article exemple a déjà un rapport — essayez en cliquant dessus !
-          </p>
+          <h4 style={h4}>{t.tutorialReportTitle}</h4>
+          <p style={p}>{t.tutorialReportBody}</p>
+          <p style={{ ...p, marginTop: 6 }}>{t.tutorialReportNote}</p>
         </div>
       ),
       placement: 'left',
@@ -212,13 +196,9 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       targetWaitTimeout: 3000,
       content: (
         <div>
-          <h4 style={h4}>Comparer des articles</h4>
-          <p style={p}>
-            Liez plusieurs articles entre eux pour les comparer côte à côte — utile pour ajuster vos prix quand vous avez des objets similaires sur plusieurs plateformes.
-          </p>
-          <p style={{ ...p, marginTop: 6 }}>
-            Le chiffre indique le nombre d'articles liés. Les deux articles exemples sont déjà liés entre eux.
-          </p>
+          <h4 style={h4}>{t.tutorialCompareTitle}</h4>
+          <p style={p}>{t.tutorialCompareBody}</p>
+          <p style={{ ...p, marginTop: 6 }}>{t.tutorialCompareNote}</p>
         </div>
       ),
       placement: 'left',
@@ -230,8 +210,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       targetWaitTimeout: 3000,
       content: (
         <div>
-          <h4 style={h4}>Modifier un article</h4>
-          <p style={p}>Double-cliquez sur n'importe quelle ligne ou utilisez ce bouton pour modifier un article directement dans le tableau.</p>
+          <h4 style={h4}>{t.tutorialEditTitle}</h4>
+          <p style={p}>{t.tutorialEditBody}</p>
         </div>
       ),
       placement: 'left',
@@ -243,8 +223,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       targetWaitTimeout: 3000,
       content: (
         <div>
-          <h4 style={h4}>Supprimer</h4>
-          <p style={p}>Supprimez un article après confirmation. Attention, cette action est irréversible.</p>
+          <h4 style={h4}>{t.tutorialDeleteTitle}</h4>
+          <p style={p}>{t.tutorialDeleteBody}</p>
         </div>
       ),
       placement: 'left',
@@ -255,8 +235,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-settings"]',
       content: (
         <div>
-          <h4 style={h4}>Paramètres & Profil</h4>
-          <p style={p}>Accédez à votre profil, configurez vos clés API IA et gérez vos préférences.</p>
+          <h4 style={h4}>{t.tutorialSettingsTitle}</h4>
+          <p style={p}>{t.tutorialSettingsBody}</p>
         </div>
       ),
       placement: 'right',
@@ -267,8 +247,8 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       target: '[data-testid="tutorial-logout"]',
       content: (
         <div>
-          <h4 style={h4}>Déconnexion</h4>
-          <p style={p}>Déconnectez-vous de votre compte. Vos données restent sauvegardées.</p>
+          <h4 style={h4}>{t.tutorialLogoutTitle}</h4>
+          <p style={p}>{t.tutorialLogoutBody}</p>
         </div>
       ),
       placement: 'right',
@@ -282,10 +262,10 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
         <div style={{ textAlign: 'center', padding: '8px 0' }}>
           {iconBadge('check_circle')}
           <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: '#1A2332' }}>
-            Vous êtes prêt ! 🚀
+            {t.tutorialEndTitle}
           </h3>
           <p style={{ margin: 0, fontSize: 13, color: '#6B7280', lineHeight: 1.6 }}>
-            Les articles d'exemple ont été supprimés. Vous pouvez relancer ce tutoriel à tout moment via le bouton d'aide en haut à droite.
+            {t.tutorialEndBody}
           </p>
         </div>
       ),
@@ -298,13 +278,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       run={isTutorialActive}
       steps={steps}
       continuous
-      locale={{
-        skip: 'Passer',
-        next: 'Suivant',
-        back: 'Retour',
-        close: 'Fermer',
-        last: 'Terminer',
-      }}
+      locale={t.tutorialLocale}
       options={{
         primaryColor: theme.accent.gold,
         overlayColor: 'rgba(0, 0, 0, 0.5)',

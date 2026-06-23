@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Platform } from '../types';
 import { theme, hexAlpha } from '../theme';
+import { useLang } from '../contexts/LanguageContext';
 
 const ICON_OPTIONS = [
   'store', 'storefront', 'checkroom', 'shopping_bag', 'sell', 'local_shipping',
@@ -19,6 +20,7 @@ interface PlatformEditModalProps {
 }
 
 const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose, onSave, onDelete }) => {
+  const { t } = useLang();
   const [form, setForm] = useState({
     label: platform.label,
     icon: platform.icon,
@@ -73,7 +75,7 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
             </div>
             <div>
               <span style={{ fontSize: 16, fontWeight: 700, color: theme.text.primary }}>
-                Modifier la plateforme
+                {t.platformEditTitle}
               </span>
               <p style={{ margin: 0, fontSize: 11, color: theme.text.secondary, marginTop: 1 }}>
                 {platform.label}
@@ -92,12 +94,12 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
         {/* Nom */}
         <div>
           <label style={{ fontSize: 12, fontWeight: 600, color: theme.text.secondary, display: 'block', marginBottom: 6 }}>
-            Nom *
+            {t.platformEditName}
           </label>
           <input
             value={form.label}
             onChange={e => setForm(f => ({ ...f, label: e.target.value }))}
-            placeholder="Ex: Vinted, Leboncoin..."
+            placeholder={t.platformEditNamePlaceholder}
             style={{
               width: '100%', height: 40, borderRadius: 10, padding: '0 12px',
               border: `1.5px solid ${hexAlpha(color, 0.35)}`,
@@ -112,7 +114,7 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
         {/* URL */}
         <div>
           <label style={{ fontSize: 12, fontWeight: 600, color: theme.text.secondary, display: 'block', marginBottom: 6 }}>
-            URL du site
+            {t.platformEditUrl}
           </label>
           <input
             value={form.url}
@@ -132,7 +134,7 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
         {/* Couleur */}
         <div>
           <label style={{ fontSize: 12, fontWeight: 600, color: theme.text.secondary, display: 'block', marginBottom: 8 }}>
-            Couleur
+            {t.platformEditColor}
           </label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <input
@@ -162,7 +164,7 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
         {/* Icône */}
         <div>
           <label style={{ fontSize: 12, fontWeight: 600, color: theme.text.secondary, display: 'block', marginBottom: 8 }}>
-            Icône
+            {t.platformEditIcon}
           </label>
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(9, 1fr)', gap: 6,
@@ -197,19 +199,19 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
           {confirmDelete ? (
             <>
               <span style={{ flex: 1, fontSize: 12, color: '#EF4444', display: 'flex', alignItems: 'center', fontWeight: 600 }}>
-                Confirmer la suppression ?
+                {t.platformEditConfirmDelete}
               </span>
               <button onClick={() => setConfirmDelete(false)} style={{
                 height: 40, paddingInline: 16, borderRadius: 10, border: `1.5px solid ${hexAlpha('#8A9BA8', 0.25)}`,
                 background: 'transparent', cursor: 'pointer', fontSize: 13, color: theme.text.secondary, fontWeight: 600,
               }}>
-                Annuler
+                {t.platformEditCancel}
               </button>
               <button onClick={handleDelete} style={{
                 height: 40, paddingInline: 16, borderRadius: 10, border: 'none',
                 background: '#EF4444', cursor: 'pointer', fontSize: 13, color: '#fff', fontWeight: 700,
               }}>
-                Supprimer
+                {t.platformEditDelete}
               </button>
             </>
           ) : (
@@ -225,7 +227,7 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
               onMouseLeave={e => { e.currentTarget.style.background = hexAlpha('#EF4444', 0.06); }}
               >
                 <span className="material-symbols-rounded" style={{ fontSize: 16 }}>delete</span>
-                Supprimer
+                {t.platformEditDelete}
               </button>
               <div style={{ flex: 1 }} />
               <button onClick={onClose} style={{
@@ -233,7 +235,7 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
                 border: `1.5px solid ${hexAlpha('#8A9BA8', 0.25)}`,
                 background: 'transparent', cursor: 'pointer', fontSize: 13, color: theme.text.secondary, fontWeight: 600,
               }}>
-                Annuler
+                {t.platformEditCancel}
               </button>
               <button onClick={handleSave} style={{
                 height: 40, paddingInline: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -241,7 +243,7 @@ const PlatformEditModal: React.FC<PlatformEditModalProps> = ({ platform, onClose
                 color: '#fff', fontSize: 13, fontWeight: 700,
                 boxShadow: `0 4px 12px ${hexAlpha(color, 0.30)}`,
               }}>
-                Enregistrer
+                {t.platformEditSave}
               </button>
             </>
           )}

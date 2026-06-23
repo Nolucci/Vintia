@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { UserProfile, AISettings, AIProvider, AIFallbackKey } from '../types';
 import { theme, hexAlpha } from '../theme';
 import Tooltip from './ItemTable/Tooltip';
+import { useLang } from '../contexts/LanguageContext';
 
 const inputStyle: React.CSSProperties = {
   width: '100%', height: 40, borderRadius: 9, padding: '0 12px',
@@ -161,6 +162,7 @@ interface SettingsPanelProps {
 }
 
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveUser, onSaveAI, onBack, onDeleteAccount }) => {
+  const { t } = useLang();
   const [form, setForm] = useState<UserProfile>({ ...user });
   const [aiForm, setAiForm] = useState<AISettings>({ ...aiSettings });
   const [saved, setSaved] = useState(false);
@@ -187,7 +189,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
   const currentMeta = PROVIDERS.find(p => p.value === aiForm.provider) ?? PROVIDERS[0];
 
   const handleDeleteAccount = async () => {
-    if (deleteInput !== 'SUPPRIMER') return;
+    if (deleteInput !== t.settingsDeleteModalWordFull) return;
     setDeleting(true);
     setDeleteError(null);
     try {
@@ -206,7 +208,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
     }}>
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-        <Tooltip text="Retourner au tableau des articles">
+        <Tooltip text={t.settingsBackTooltip}>
           <button
             onClick={onBack}
             style={{
@@ -220,11 +222,11 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
             <span className="material-symbols-rounded" style={{ fontSize: 18, color: theme.accent.gold }}>arrow_back</span>
           </button>
         </Tooltip>
-        <span style={{ fontSize: 18, fontWeight: 700, color: theme.text.primary }}>Paramètres</span>
+        <span style={{ fontSize: 18, fontWeight: 700, color: theme.text.primary }}>{t.settingsTitle}</span>
       </div>
 
       {/* Profil */}
-      <Section title="Profil">
+      <Section title={t.settingsSectionProfile}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <div style={{
             width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
@@ -242,16 +244,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, flex: 1 }}>
             <div>
-              <Label>Nom complet</Label>
+              <Label>{t.settingsFullName}</Label>
               <input style={inputStyle} value={form.name} onChange={e => setUser('name', e.target.value)}
-                placeholder="Prénom Nom"
+                placeholder={t.settingsFullNamePlaceholder}
                 onFocus={e => { e.currentTarget.style.borderColor = theme.accent.gold; }}
                 onBlur={e => { e.currentTarget.style.borderColor = hexAlpha(theme.accent.gold, 0.28); }} />
             </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <Label tooltip="URL d'une image en ligne pour votre photo">Photo de profil (URL)</Label>
+              <Label tooltip={t.settingsAvatarUrlTooltip}>{t.settingsAvatarUrl}</Label>
               <input style={inputStyle} value={form.avatarUrl ?? ''} onChange={e => setUser('avatarUrl', e.target.value || undefined)}
-                placeholder="https://exemple.com/photo.jpg"
+                placeholder={t.settingsAvatarUrlPlaceholder}
                 onFocus={e => { e.currentTarget.style.borderColor = theme.accent.gold; }}
                 onBlur={e => { e.currentTarget.style.borderColor = hexAlpha(theme.accent.gold, 0.28); }} />
             </div>
@@ -260,7 +262,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
       </Section>
 
       {/* IA & Recherche web */}
-      <Section title="IA & Recherche web">
+      <Section title={t.settingsSectionAI}>
         <div style={{
           display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 12px',
           borderRadius: 9, background: hexAlpha(theme.accent.gold, 0.05),
@@ -268,14 +270,13 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
         }}>
           <span className="material-symbols-rounded" style={{ fontSize: 15, color: theme.accent.gold, marginTop: 1 }}>info</span>
           <span style={{ fontSize: 12, color: theme.text.secondary, lineHeight: 1.6 }}>
-            Choisissez votre IA préférée pour analyser vos articles et rechercher les prix du marché.
-            La clé API est stockée uniquement sur cet appareil.
+            {t.settingsAIInfo}
           </span>
         </div>
 
         {/* Sélecteur de provider — grille de boutons */}
         <div>
-          <Label>Fournisseur d'IA</Label>
+          <Label>{t.settingsAIProvider}</Label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
             {PROVIDERS.map(p => {
               const active = aiForm.provider === p.value;
@@ -321,7 +322,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
 
         {/* Modèle */}
         <div>
-          <Label tooltip={`Modèle ${currentMeta.label} à utiliser`}>Modèle</Label>
+          <Label tooltip={t.settingsAIModelTooltip(currentMeta.label)}>{t.settingsAIModel}</Label>
           {currentMeta.modelOptions.length > 0 ? (
             <select
               value={aiForm.model}
@@ -339,7 +340,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
               style={inputStyle}
               value={aiForm.model}
               onChange={e => setAi('model', e.target.value)}
-              placeholder="nom-du-modèle"
+              placeholder={t.settingsAIModel}
               onFocus={e => { e.currentTarget.style.borderColor = currentMeta.color; }}
               onBlur={e => { e.currentTarget.style.borderColor = hexAlpha(theme.accent.gold, 0.28); }}
             />
@@ -349,8 +350,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
         {/* Clé API */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-            <Label tooltip={`Clé API ${currentMeta.label} — disponible sur ${currentMeta.keyHint}`}>
-              Clé API {currentMeta.label}
+            <Label tooltip={t.settingsAPIKeyTooltip(currentMeta.label, currentMeta.keyHint)}>
+              {t.settingsAPIKey(currentMeta.label)}
             </Label>
             <span style={{ fontSize: 10, color: hexAlpha(theme.text.secondary, 0.55), fontStyle: 'italic' }}>
               {currentMeta.keyHint}
@@ -390,27 +391,27 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
           {aiForm.apiKey ? (
             <span style={{ fontSize: 11, color: currentMeta.color, marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
               <span className="material-symbols-rounded" style={{ fontSize: 13 }}>check_circle</span>
-              Clé {currentMeta.label} configurée
+              {t.settingsAPIKeyConfigured(currentMeta.label)}
               {currentMeta.hasWebSearch && (
                 <span style={{
                   marginLeft: 6, fontSize: 10, fontWeight: 700,
                   background: hexAlpha(currentMeta.color, 0.12),
                   color: currentMeta.color, borderRadius: 4, padding: '1px 5px',
                 }}>
-                  Recherche web activée
+                  {t.settingsWebSearchEnabled}
                 </span>
               )}
             </span>
           ) : (
             <span style={{ fontSize: 11, color: hexAlpha(theme.text.secondary, 0.55), marginTop: 5, display: 'block' }}>
-              Aucune clé — les analyses ne fonctionneront pas
+              {t.settingsNoKey}
             </span>
           )}
         </div>
       </Section>
 
       {/* IA Fallback */}
-      <Section title="IA de secours (fallback)">
+      <Section title={t.settingsSectionFallback}>
         <div style={{
           display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 12px',
           borderRadius: 9, background: hexAlpha('#0E74F4', 0.04),
@@ -418,7 +419,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
         }}>
           <span className="material-symbols-rounded" style={{ fontSize: 15, color: '#0E74F4', marginTop: 1 }}>swap_horiz</span>
           <span style={{ fontSize: 12, color: theme.text.secondary, lineHeight: 1.6 }}>
-            Si l'IA principale ne peut pas accéder au site, Vintia essaie automatiquement ces IA de secours (dans l'ordre). Maximum 2 fallbacks.
+            {t.settingsFallbackInfo}
           </span>
         </div>
 
@@ -450,20 +451,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
                   fontSize: 11, fontWeight: 800, color: theme.text.secondary,
                 }}>{idx + 1}</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: theme.text.secondary, textTransform: 'uppercase', letterSpacing: 0.4 }}>
-                  Fallback {idx + 1}
+                  {t.settingsFallbackLabel(idx + 1)}
                 </span>
                 {hasKey && (
                   <span style={{
                     fontSize: 10, fontWeight: 700, color: fbMeta.color,
                     background: hexAlpha(fbMeta.color, 0.10), borderRadius: 4, padding: '1px 6px',
-                  }}>{fbMeta.label} configuré</span>
+                  }}>{t.settingsFallbackConfigured(fbMeta.label)}</span>
                 )}
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {/* Provider */}
                 <div>
-                  <Label>Fournisseur</Label>
+                  <Label>{t.settingsFallbackProvider}</Label>
                   <select
                     value={fb.provider}
                     onChange={e => setFb({ provider: e.target.value as AIProvider, model: PROVIDERS.find(p => p.value === e.target.value)?.defaultModel ?? '' })}
@@ -477,7 +478,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
 
                 {/* Modèle */}
                 <div>
-                  <Label>Modèle</Label>
+                  <Label>{t.settingsFallbackModel}</Label>
                   {fbMeta.modelOptions.length > 0 ? (
                     <select
                       value={fb.model}
@@ -489,14 +490,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
                       ))}
                     </select>
                   ) : (
-                    <input style={inputStyle} value={fb.model} onChange={e => setFb({ model: e.target.value })} placeholder="modèle" />
+                    <input style={inputStyle} value={fb.model} onChange={e => setFb({ model: e.target.value })} placeholder={t.settingsFallbackModel} />
                   )}
                 </div>
               </div>
 
               {/* Clé API */}
               <div>
-                <Label tooltip={`Clé API ${fbMeta.label} — ${fbMeta.keyHint}`}>Clé API {fbMeta.label}</Label>
+                <Label tooltip={t.settingsFallbackApiKeyTooltip(fbMeta.label, fbMeta.keyHint)}>{t.settingsFallbackApiKey(fbMeta.label)}</Label>
                 <input
                   type="password"
                   style={{
@@ -516,12 +517,12 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
       </Section>
 
       {/* Compte */}
-      <Section title="Compte">
+      <Section title={t.settingsSectionAccount}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text.primary }}>Supprimer mon compte</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: theme.text.primary }}>{t.settingsDeleteAccount}</span>
             <p style={{ fontSize: 12, color: theme.text.secondary, margin: '3px 0 0' }}>
-              Supprime définitivement votre compte et toutes vos données.
+              {t.settingsDeleteAccountDesc}
             </p>
           </div>
           <button
@@ -536,7 +537,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
             onMouseLeave={e => { e.currentTarget.style.background = hexAlpha('#EF4444', 0.06); }}
           >
             <span className="material-symbols-rounded" style={{ fontSize: 16 }}>delete_forever</span>
-            Supprimer
+            {t.settingsDelete}
           </button>
         </div>
       </Section>
@@ -563,23 +564,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
               }}>
                 <span className="material-symbols-rounded" style={{ fontSize: 20, color: '#EF4444' }}>warning</span>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#1A2332' }}>Supprimer mon compte</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: '#1A2332' }}>{t.settingsDeleteModalTitle}</span>
             </div>
 
-            <p style={{ fontSize: 13, color: '#4B5563', lineHeight: 1.6, margin: 0 }}>
-              Cette action est <strong>irréversible</strong>. Toutes vos données (articles, plateformes, paramètres) seront définitivement supprimées.
-            </p>
+            <p style={{ fontSize: 13, color: '#4B5563', lineHeight: 1.6, margin: 0 }}
+              dangerouslySetInnerHTML={{ __html: t.settingsDeleteModalDesc }}
+            />
 
             <div>
               <label style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', display: 'block', marginBottom: 6 }}>
-                Tapez <strong style={{ color: '#EF4444' }}>SUPPRIMER</strong> pour confirmer
+                {t.settingsDeleteModalLabel}{' '}
+                <strong style={{ color: '#EF4444' }}>{t.settingsDeleteModalWord}</strong>{' '}
+                {t.settingsDeleteModalConfirm}
               </label>
               <input
                 value={deleteInput}
                 onChange={e => setDeleteInput(e.target.value)}
-                placeholder="SUPPRIMER"
+                placeholder={t.settingsDeleteModalWordFull}
                 style={{
-                  ...inputStyle, borderColor: deleteInput === 'SUPPRIMER' ? '#EF4444' : hexAlpha('#000', 0.15),
+                  ...inputStyle, borderColor: deleteInput === t.settingsDeleteModalWordFull ? '#EF4444' : hexAlpha('#000', 0.15),
                   color: '#1A2332',
                 }}
                 autoFocus
@@ -603,22 +606,22 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
                   fontSize: 13, fontWeight: 600, paddingInline: 18, cursor: 'pointer',
                 }}
               >
-                Annuler
+                {t.settingsDeleteModalCancel}
               </button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleteInput !== 'SUPPRIMER' || deleting}
+                disabled={deleteInput !== t.settingsDeleteModalWordFull || deleting}
                 style={{
                   height: 38, borderRadius: 9, border: 'none',
-                  background: deleteInput === 'SUPPRIMER' && !deleting ? '#EF4444' : hexAlpha('#EF4444', 0.35),
+                  background: deleteInput === t.settingsDeleteModalWordFull && !deleting ? '#EF4444' : hexAlpha('#EF4444', 0.35),
                   color: '#FFFFFF', fontSize: 13, fontWeight: 700, paddingInline: 18,
-                  cursor: deleteInput === 'SUPPRIMER' && !deleting ? 'pointer' : 'not-allowed',
+                  cursor: deleteInput === t.settingsDeleteModalWordFull && !deleting ? 'pointer' : 'not-allowed',
                   display: 'flex', alignItems: 'center', gap: 6,
                 }}
               >
                 {deleting
-                  ? <><span className="material-symbols-rounded" style={{ fontSize: 15, animation: 'spin 1s linear infinite' }}>progress_activity</span> Suppression...</>
-                  : <><span className="material-symbols-rounded" style={{ fontSize: 15 }}>delete_forever</span> Supprimer définitivement</>
+                  ? <><span className="material-symbols-rounded" style={{ fontSize: 15, animation: 'spin 1s linear infinite' }}>progress_activity</span> {t.settingsDeleteModalDeleting}</>
+                  : <><span className="material-symbols-rounded" style={{ fontSize: 15 }}>delete_forever</span> {t.settingsDeleteModalConfirmBtn}</>
                 }
               </button>
             </div>
@@ -645,7 +648,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ user, aiSettings, onSaveU
           <span className="material-symbols-rounded" style={{ fontSize: 17 }}>
             {saved ? 'check_circle' : 'save'}
           </span>
-          {saved ? 'Sauvegardé !' : 'Sauvegarder'}
+          {saved ? t.settingsSaved : t.settingsSave}
         </button>
       </div>
     </div>

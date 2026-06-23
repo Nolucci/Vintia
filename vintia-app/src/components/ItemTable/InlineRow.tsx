@@ -2,10 +2,11 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import type { Item, ItemType, Platform } from '../../types';
 import { theme, hexAlpha } from '../../theme';
-import { TRANSACTION_META, TRANSACTION_CYCLE, TYPE_META, COL_MIN } from './constants';
+import { getTransactionMeta, TRANSACTION_CYCLE, getTypeMeta, COL_MIN } from './constants';
 import Tooltip from './Tooltip';
+import { useLang } from '../../contexts/LanguageContext';
 
-const ITEM_TYPES = Object.entries(TYPE_META) as [ItemType, typeof TYPE_META[ItemType]][];
+// ITEM_TYPES is built dynamically in the component using getTypeMeta(t)
 
 const ROW_H = 68;
 
@@ -70,15 +71,18 @@ const FinancesCell: React.FC<{
   prixAchat: number | null;
   prixVente: number | null;
   prixVendu: number | null;
-}> = ({ prixAchat, prixVente, prixVendu }) => (
-  <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', paddingInline: 4 }}>
-    <FinCol label="Achat"       val={prixAchat}  color={RED} />
-    <FinSep />
-    <FinCol label="Proposition" val={prixVente}  color={theme.accent.blue} />
-    <FinSep />
-    <FinCol label="Vente"       val={prixVendu}  color={GREEN} />
-  </div>
-);
+}> = ({ prixAchat, prixVente, prixVendu }) => {
+  const { t } = useLang();
+  return (
+    <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', paddingInline: 4 }}>
+      <FinCol label={t.rowPriceAchat} val={prixAchat}  color={RED} />
+      <FinSep />
+      <FinCol label={t.rowPriceVente} val={prixVente}  color={theme.accent.blue} />
+      <FinSep />
+      <FinCol label={t.rowPriceVendu} val={prixVendu}  color={GREEN} />
+    </div>
+  );
+};
 
 interface InlineRowProps {
   item: Item;
@@ -139,10 +143,13 @@ const InlineRow: React.FC<InlineRowProps> = ({
   }, [showCompare]);
 
   const isMobile = useIsMobile();
+  const { t, lang } = useLang();
+  const allTypeMeta = getTypeMeta(t);
+  const allTransMeta = getTransactionMeta(t);
 
   const isChild = depth > 0;
-  const typeMeta = TYPE_META[draft.type];
-  const transMeta = TRANSACTION_META[draft.transaction];
+  const typeMeta = allTypeMeta[draft.type];
+  const transMeta = allTransMeta[draft.transaction];
 
   const set = <K extends keyof Item>(k: K, v: Item[K]) =>
     setDraft(prev => {
@@ -288,10 +295,10 @@ const InlineRow: React.FC<InlineRowProps> = ({
                     flex: 1, height: 32, fontSize: 13, fontWeight: 700,
                     border: 'none', borderBottom: `1.5px solid ${hexAlpha(theme.accent.gold, 0.30)}`,
                     background: 'transparent', outline: 'none', cursor: 'pointer',
-                    color: TYPE_META[draft.type].color,
+                    color: allTypeMeta[draft.type].color,
                   }}
                 >
-                  {ITEM_TYPES.map(([val, meta]) => (
+                  {Object.entries(allTypeMeta).map(([val, meta]) => (
                     <option key={val} value={val}>{meta.label}</option>
                   ))}
                 </select>
@@ -303,7 +310,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                 value={draft.titre}
                 onChange={e => set('titre', e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
-                placeholder="Nom de l'article..."
+                placeholder={t.rowTitlePlaceholder}
                 style={{
                   width: '100%', border: 'none',
                   borderBottom: `1.5px solid ${hexAlpha(theme.accent.gold, 0.30)}`,
@@ -315,15 +322,15 @@ const InlineRow: React.FC<InlineRowProps> = ({
               {/* Ligne 3 : prix */}
               <div style={{ display: 'flex', gap: 10 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: hexAlpha(RED, 0.7), textTransform: 'uppercase', marginBottom: 2 }}>Achat</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: hexAlpha(RED, 0.7), textTransform: 'uppercase', marginBottom: 2 }}>{t.rowPriceAchat}</div>
                   <NumInput value={draft.prixAchat} onChange={v => set('prixAchat', v)} color={RED} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: theme.accent.blue, textTransform: 'uppercase', marginBottom: 2 }}>Proposition</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: theme.accent.blue, textTransform: 'uppercase', marginBottom: 2 }}>{t.rowPriceVente}</div>
                   <NumInput value={draft.prixVente} onChange={v => set('prixVente', v)} color={theme.accent.blue} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: hexAlpha(GREEN, 0.9), textTransform: 'uppercase', marginBottom: 2 }}>Vendu</div>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: hexAlpha(GREEN, 0.9), textTransform: 'uppercase', marginBottom: 2 }}>{t.rowPriceVendu}</div>
                   <NumInput value={draft.prixVendu} onChange={v => set('prixVendu', v)} color={GREEN} />
                 </div>
               </div>
@@ -331,7 +338,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
               {/* Plateforme + URL */}
               {platforms.length > 0 && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 11, color: '#000000', flexShrink: 0 }}>Plateforme :</span>
+                  <span style={{ fontSize: 11, color: '#000000', flexShrink: 0 }}>{t.rowPlatform}</span>
                   <select
                     value={draft.platformId ?? ''}
                     onChange={e => set('platformId', e.target.value || null)}
@@ -341,13 +348,13 @@ const InlineRow: React.FC<InlineRowProps> = ({
                       background: 'transparent', outline: 'none', cursor: 'pointer', color: theme.text.primary,
                     }}
                   >
-                    <option value="">— Aucune —</option>
+                    <option value="">— {t.rowNoPlatform} —</option>
                     {platforms.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                   </select>
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 11, color: '#000000', flexShrink: 0 }}>Lien :</span>
+                <span style={{ fontSize: 11, color: '#000000', flexShrink: 0 }}>{t.rowLink}</span>
                 <input
                   value={draft.url}
                   onChange={e => set('url', e.target.value)}
@@ -367,7 +374,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                 <textarea
                   value={draft.description ?? ''}
                   onChange={e => set('description', e.target.value)}
-                  placeholder="Description (optionnelle, aide l'IA)..."
+                  placeholder={t.rowDescPlaceholder}
                   rows={2}
                   style={{
                     flex: 1, border: 'none', resize: 'vertical', minHeight: 36,
@@ -443,7 +450,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                   textDecoration: draft.transaction === 'perdu' ? 'line-through' : 'none',
                   overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 }}>
-                  {draft.titre || <span style={{ opacity: 0.55 }}>Sans titre</span>}
+                  {draft.titre || <span style={{ opacity: 0.55 }}>{t.rowUntitled}</span>}
                 </span>
 
                 {draft.url && (
@@ -483,16 +490,16 @@ const InlineRow: React.FC<InlineRowProps> = ({
                   </span>
                 )}
                 <span style={{ fontSize: 10, color: '#000000', marginLeft: 'auto' }}>
-                  {draft.dateAjout ? new Date(draft.dateAjout).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ''}
+                  {draft.dateAjout ? new Date(draft.dateAjout).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ''}
                 </span>
               </div>
 
               {/* Ligne 3 : prix */}
               <div style={{ display: 'flex', alignItems: 'stretch', gap: 0, marginBottom: hasIA ? 5 : 0, background: hexAlpha('#1A2332', 0.025), borderRadius: 7, overflow: 'hidden' }}>
                 {[
-                  { label: 'Achat', val: draft.prixAchat, color: RED },
-                  { label: 'Proposition', val: draft.prixVente, color: theme.accent.blue },
-                  { label: 'Vendu', val: draft.prixVendu, color: GREEN },
+                  { label: t.rowPriceAchat, val: draft.prixAchat, color: RED },
+                  { label: t.rowPriceVente, val: draft.prixVente, color: theme.accent.blue },
+                  { label: t.rowPriceVendu, val: draft.prixVendu, color: GREEN },
                 ].map(({ label, val, color }, i) => (
                   <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', padding: '4px 8px', borderLeft: i > 0 ? `1px solid ${hexAlpha('#8A9BA8', 0.10)}` : 'none' }}>
                     <span style={{ fontSize: 8, fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: 0.3 }}>{label}</span>
@@ -509,7 +516,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                   <span className="material-symbols-rounded" style={{ fontSize: 12, color: theme.accent.gold, flexShrink: 0 }}>auto_awesome</span>
                   {iaAchat !== null && (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                      <span style={{ fontSize: 8, fontWeight: 700, color: RED, textTransform: 'uppercase' }}>IA Achat</span>
+                      <span style={{ fontSize: 8, fontWeight: 700, color: RED, textTransform: 'uppercase' }}>{t.rowIABuy}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: RED }}>{iaAchat.toFixed(2)} €</span>
                     </div>
                   )}
@@ -518,7 +525,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                   )}
                   {iaProp !== null && (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                      <span style={{ fontSize: 8, fontWeight: 700, color: theme.accent.gold, textTransform: 'uppercase' }}>IA Prop.</span>
+                      <span style={{ fontSize: 8, fontWeight: 700, color: theme.accent.gold, textTransform: 'uppercase' }}>{t.rowIAProp}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: theme.accent.gold }}>{iaProp.toFixed(2)} €</span>
                     </div>
                   )}
@@ -526,7 +533,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                     <>
                       <div style={{ width: 1, height: 22, background: hexAlpha(theme.accent.gold, 0.18) }} />
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        <span style={{ fontSize: 8, fontWeight: 700, color: iaMargePos ? GREEN : RED, textTransform: 'uppercase' }}>Marge</span>
+                        <span style={{ fontSize: 8, fontWeight: 700, color: iaMargePos ? GREEN : RED, textTransform: 'uppercase' }}>{t.rowMarge}</span>
                         <span style={{ fontSize: 12, fontWeight: 700, color: iaMargePos ? GREEN : RED }}>
                           {iaMargePos ? '+' : ''}{iaMarge.toFixed(2)} €
                         </span>
@@ -683,10 +690,10 @@ const InlineRow: React.FC<InlineRowProps> = ({
                 width: '100%', height: 34, fontSize: 13, fontWeight: 700,
                 border: 'none', borderBottom: `1.5px solid ${hexAlpha(theme.accent.gold, 0.30)}`,
                 background: 'transparent', outline: 'none', cursor: 'pointer',
-                color: TYPE_META[draft.type].color,
+                color: allTypeMeta[draft.type].color,
               }}
             >
-              {ITEM_TYPES.map(([val, meta]) => (
+              {Object.entries(allTypeMeta).map(([val, meta]) => (
                 <option key={val} value={val}>{meta.label}</option>
               ))}
             </select>
@@ -715,7 +722,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
               value={draft.titre}
               onChange={e => set('titre', e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
-              placeholder="Nom de l'article..."
+              placeholder={t.rowTitlePlaceholder}
               style={{
                 width: '100%', border: 'none',
                 borderBottom: `1.5px solid ${hexAlpha(theme.accent.gold, 0.30)}`,
@@ -726,7 +733,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
           ) : (
             <div style={{ minWidth: 0, width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
-                <Tooltip text="Double-clic pour modifier" placement="bottom">
+                <Tooltip text={t.rowDblClickToEdit} placement="bottom">
                   <span style={{
                     fontSize: 15, fontWeight: isChild ? 500 : 600,
                     color: draft.transaction === 'perdu' ? '#8A9BA8' : theme.text.primary,
@@ -734,10 +741,10 @@ const InlineRow: React.FC<InlineRowProps> = ({
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     display: 'block', cursor: 'text', flex: 1, minWidth: 0,
                   }}>
-                    {draft.titre || <span style={{ opacity: 0.55 }}>Sans titre</span>}
+                    {draft.titre || <span style={{ opacity: 0.55 }}>{t.rowUntitled}</span>}
                   </span>
                 </Tooltip>
-                <Tooltip text={draft.description ? (showDesc ? 'Masquer la description' : 'Voir la description') : "Ajouter une description (aide l'IA si le site est inaccessible)"}>
+                <Tooltip text={draft.description ? (showDesc ? t.rowDescHide : t.rowDescShow) : t.rowDescAdd}>
                   <button
                     onClick={e => { e.stopPropagation(); setShowDesc(s => !s); }}
                     style={{
@@ -774,10 +781,10 @@ const InlineRow: React.FC<InlineRowProps> = ({
         {/* ── URL ── */}
         <div style={cell(col.url, { justifyContent: 'center', flexDirection: 'column', alignItems: 'center', gap: 2 })}>
           <span style={{ fontSize: 9, color: '#000000', fontWeight: 600, lineHeight: 1 }}>
-            {draft.dateAjout ? new Date(draft.dateAjout).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : ''}
+            {draft.dateAjout ? new Date(draft.dateAjout).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: '2-digit' }) : ''}
           </span>
           {draft.url ? (
-            <Tooltip text={editing ? `Modifier : ${draft.url}` : `Ouvrir l'annonce`}>
+            <Tooltip text={editing ? t.rowEditUrl(draft.url) : t.rowOpenUrl}>
               <a
                 href={draft.url}
                 target="_blank"
@@ -803,15 +810,15 @@ const InlineRow: React.FC<InlineRowProps> = ({
           {editing ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: '#EF4444', fontWeight: 700, width: 64, flexShrink: 0 }}>Achat</span>
+                <span style={{ fontSize: 10, color: '#EF4444', fontWeight: 700, width: 64, flexShrink: 0 }}>{t.rowPriceAchat}</span>
                 <NumInput value={draft.prixAchat} onChange={v => set('prixAchat', v)} color="#EF4444" />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: theme.accent.blue, fontWeight: 700, width: 64, flexShrink: 0 }}>Proposition</span>
+                <span style={{ fontSize: 10, color: theme.accent.blue, fontWeight: 700, width: 64, flexShrink: 0 }}>{t.rowPriceVente}</span>
                 <NumInput value={draft.prixVente} onChange={v => set('prixVente', v)} color={theme.accent.blue} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ fontSize: 10, color: '#16A34A', fontWeight: 700, width: 64, flexShrink: 0 }}>Vente</span>
+                <span style={{ fontSize: 10, color: '#16A34A', fontWeight: 700, width: 64, flexShrink: 0 }}>{t.rowPriceVendu}</span>
                 <NumInput value={draft.prixVendu} onChange={v => set('prixVendu', v)} color="#16A34A" />
               </div>
             </div>
@@ -825,7 +832,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
         </div>
 
         {/* ── Comparé avec ── */}
-        <Tooltip text="Comparaison — articles liés pour comparer les prix">
+        <Tooltip text={t.rowCompareCellTooltip}>
           <div data-testid="tutorial-compare" style={cell(col.compareAvec, { justifyContent: 'center' })}>
             {editing ? (
               <button
@@ -879,7 +886,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
         }} />
 
         {/* ── IA ── */}
-        <Tooltip text={iaComment ? 'Cliquez pour voir le commentaire IA' : 'Prix IA cible + recommandation pour optimiser votre vente'}>
+        <Tooltip text={iaComment ? t.rowIACommentTooltip : t.rowIATooltip}>
           <div data-testid="tutorial-col-ia" onClick={iaComment ? e => { e.stopPropagation(); setShowComment(s => !s); } : undefined} style={{ ...cell(col.ia, { padding: '0 8px', gap: 6 }), cursor: iaComment ? 'pointer' : 'default' }}>
             {editing ? (
               <>
@@ -902,7 +909,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                     {iaAchat !== null && (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-                        <span style={{ fontSize: 8, fontWeight: 700, color: hexAlpha('#EF4444', 0.65), textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1 }}>Achat</span>
+                        <span style={{ fontSize: 8, fontWeight: 700, color: hexAlpha('#EF4444', 0.65), textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1 }}>{t.rowIABuy}</span>
                         <span style={{ fontSize: 12, fontWeight: 700, color: '#EF4444', lineHeight: 1 }}>{iaAchat.toFixed(2)} €</span>
                       </div>
                     )}
@@ -911,7 +918,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                     )}
                     {iaProp !== null && (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-                        <span style={{ fontSize: 8, fontWeight: 700, color: hexAlpha(theme.accent.gold, 0.70), textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1 }}>Prop.</span>
+                        <span style={{ fontSize: 8, fontWeight: 700, color: hexAlpha(theme.accent.gold, 0.70), textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1 }}>{t.rowIAProp}</span>
                         <span style={{ fontSize: 12, fontWeight: 700, color: theme.accent.gold, lineHeight: 1 }}>{iaProp.toFixed(2)} €</span>
                       </div>
                     )}
@@ -919,7 +926,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                       <>
                         <div style={{ width: 1, height: 22, background: hexAlpha(theme.accent.gold, 0.18), flexShrink: 0 }} />
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0 }}>
-                          <span style={{ fontSize: 8, fontWeight: 700, color: hexAlpha(iaMargePos ? GREEN : RED, 0.65), textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1 }}>Marge</span>
+                          <span style={{ fontSize: 8, fontWeight: 700, color: hexAlpha(iaMargePos ? GREEN : RED, 0.65), textTransform: 'uppercase', letterSpacing: 0.3, lineHeight: 1 }}>{t.rowMarge}</span>
                           <span style={{ fontSize: 12, fontWeight: 700, color: iaMargePos ? GREEN : RED, lineHeight: 1 }}>
                             {iaMargePos ? '+' : ''}{iaMarge.toFixed(2)} €
                           </span>
@@ -954,25 +961,25 @@ const InlineRow: React.FC<InlineRowProps> = ({
           {editing ? (
             <>
               {onRequestPerplexity && (
-                <Tooltip text="Rechercher sur le web avec Perplexity — prix du marché, demande, conseils">
+                <Tooltip text={t.rowPerplexityTooltip}>
                   <button onClick={e => { e.stopPropagation(); save(); onRequestPerplexity(draft); }} style={btnStyle('#0E74F4')}>
                     <span className="material-symbols-rounded" style={{ fontSize: 17, color: '#0E74F4' }}>travel_explore</span>
                   </button>
                 </Tooltip>
               )}
               {onRequestAI && (
-                <Tooltip text="Analyser avec l'IA — obtenir un prix cible et une recommandation">
+                <Tooltip text={t.rowAIAnalyzeTooltip}>
                   <button onClick={e => { e.stopPropagation(); save(); onRequestAI(draft); }} style={btnStyle(theme.accent.gold)}>
                     <span className="material-symbols-rounded" style={{ fontSize: 17, color: theme.accent.gold }}>auto_awesome</span>
                   </button>
                 </Tooltip>
               )}
-              <Tooltip text="Enregistrer (Entrée)">
+              <Tooltip text={t.rowSaveTooltip}>
                 <button onClick={save} style={btnStyle('#22C55E')}>
                   <span className="material-symbols-rounded" style={{ fontSize: 17, color: '#16A34A' }}>check</span>
                 </button>
               </Tooltip>
-              <Tooltip text="Annuler (Echap)">
+              <Tooltip text={t.rowCancelTooltip}>
                 <button onClick={cancel} style={btnStyle('#8A9BA8')}>
                   <span className="material-symbols-rounded" style={{ fontSize: 17, color: theme.text.secondary }}>close</span>
                 </button>
@@ -981,7 +988,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
           ) : (
             <>
                {onOpenReport && item.analyseIA && (
-                 <Tooltip text="Voir le dernier rapport d'analyse IA">
+                 <Tooltip text={t.rowReportTooltip}>
                    <button
                      data-testid="tutorial-report"
                      onClick={e => { e.stopPropagation(); onOpenReport(item); }}
@@ -994,7 +1001,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                 </Tooltip>
               )}
                {onRequestPerplexity && (
-                 <Tooltip text="Lancer une nouvelle analyse IA — prix du marché, demande, conseils">
+                 <Tooltip text={t.rowNewAnalysisTooltip}>
                    <button
                      data-testid="tutorial-perplexity"
                      onClick={e => { e.stopPropagation(); onRequestPerplexity(item); }}
@@ -1007,7 +1014,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                 </Tooltip>
               )}
               {onRequestAI && (
-                <Tooltip text="Analyser avec l'IA — obtenir un prix cible et une recommandation">
+                <Tooltip text={t.rowAIAnalyzeTooltip}>
                   <button
                     onClick={e => { e.stopPropagation(); onRequestAI(item); }}
                     style={btnStyle(theme.accent.gold)}
@@ -1018,7 +1025,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                   </button>
                 </Tooltip>
               )}
-                <Tooltip text="Modifier (ou double-cliquez sur la ligne)">
+                <Tooltip text={t.rowEditTooltip}>
                   <button
                     data-testid="tutorial-edit"
                     onClick={() => setEditing(true)}
@@ -1029,19 +1036,19 @@ const InlineRow: React.FC<InlineRowProps> = ({
               </Tooltip>
               {confirmDelete ? (
                 <>
-                  <Tooltip text="Confirmer la suppression définitive">
+                  <Tooltip text={t.rowDeleteConfirmTooltip}>
                     <button onClick={() => onDelete(item.id)} style={{ ...btnStyle('#EF4444'), background: '#EF4444' }}>
                       <span className="material-symbols-rounded" style={{ fontSize: 13, color: '#fff' }}>delete_forever</span>
                     </button>
                   </Tooltip>
-                  <Tooltip text="Annuler la suppression">
+                  <Tooltip text={t.rowDeleteCancelTooltip}>
                     <button onClick={() => setConfirmDelete(false)} style={btnStyle('#8A9BA8')}>
                       <span className="material-symbols-rounded" style={{ fontSize: 13, color: theme.text.secondary }}>undo</span>
                     </button>
                   </Tooltip>
                 </>
                  ) : (
-                   <Tooltip text="Supprimer cet article">
+                   <Tooltip text={t.rowDeleteTooltip}>
                      <button
                        data-testid="tutorial-delete"
                        onClick={() => setConfirmDelete(true)}
@@ -1093,7 +1100,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
             </p>
           ) : (
             <span style={{ fontSize: 11, color: '#000000', fontStyle: 'italic' }}>
-              Aucune description — double-clic pour en ajouter une (aide l'IA si le site est inaccessible).
+              {t.rowNoDescEmpty}
             </span>
           )}
         </div>
@@ -1113,7 +1120,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             {platforms.length > 0 && (
               <>
-                <span style={{ fontSize: 11, color: '#000000', flexShrink: 0 }}>Plateforme :</span>
+                <span style={{ fontSize: 11, color: '#000000', flexShrink: 0 }}>{t.rowPlatform}</span>
                 <select
                   value={draft.platformId ?? ''}
                   onChange={e => set('platformId', e.target.value || null)}
@@ -1123,12 +1130,12 @@ const InlineRow: React.FC<InlineRowProps> = ({
                     background: 'transparent', outline: 'none', cursor: 'pointer', color: theme.text.primary,
                   }}
                 >
-                  <option value="">— Aucune —</option>
+                  <option value="">— {t.rowNoPlatform} —</option>
                   {platforms.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                 </select>
               </>
             )}
-            <span style={{ fontSize: 11, color: theme.text.secondary, flexShrink: 0 }}>Lien :</span>
+            <span style={{ fontSize: 11, color: theme.text.secondary, flexShrink: 0 }}>{t.rowLink}</span>
             <input
               value={draft.url}
               onChange={e => set('url', e.target.value)}
@@ -1145,12 +1152,12 @@ const InlineRow: React.FC<InlineRowProps> = ({
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <span style={{ fontSize: 11, color: theme.accent.gold, flexShrink: 0, paddingTop: 3, display: 'flex', alignItems: 'center', gap: 3 }}>
               <span className="material-symbols-rounded" style={{ fontSize: 12 }}>notes</span>
-              Description :
+              {t.rowDescLabelIcon}
             </span>
             <textarea
               value={draft.description ?? ''}
               onChange={e => set('description', e.target.value)}
-              placeholder="Décrivez l'article (état, taille, marque, défauts...) — utilisé par l'IA si l'annonce est inaccessible"
+              placeholder={t.rowDescPlaceholderFull}
               rows={2}
               style={{
                 flex: 1, border: 'none', resize: 'vertical', minHeight: 38, maxHeight: 120,
@@ -1179,10 +1186,10 @@ const InlineRow: React.FC<InlineRowProps> = ({
           }}
         >
           <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, color: theme.accent.gold, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Comparer avec
+            {t.rowCompareWith}
           </p>
           {allItems.filter(i => i.id !== item.id).length === 0 ? (
-            <p style={{ margin: 0, fontSize: 12, color: '#000000' }}>Aucun autre article</p>
+            <p style={{ margin: 0, fontSize: 12, color: '#000000' }}>{t.rowNoOtherItem}</p>
           ) : (
             allItems.filter(i => i.id !== item.id).map(i => (
               <label key={i.id} style={{
@@ -1197,7 +1204,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                   style={{ accentColor: theme.accent.gold, width: 14, height: 14, flexShrink: 0 }}
                 />
                 <span style={{ fontSize: 12, fontWeight: draft.compareAvec.includes(i.id) ? 700 : 400, color: theme.text.primary, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {i.titre || <span style={{ color: '#000000', fontStyle: 'italic' }}>Sans titre</span>}
+                  {i.titre || <span style={{ color: '#000000', fontStyle: 'italic' }}>{t.rowUntitled}</span>}
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: '#000000', flexShrink: 0 }}>
                   {i.prixVente !== null ? `${i.prixVente.toFixed(2)} €` : '—'}

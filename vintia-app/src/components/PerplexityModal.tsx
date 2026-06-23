@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { theme, hexAlpha } from '../theme';
+import { useLang } from '../contexts/LanguageContext';
 import type { WebSearchResult, SimilarItem } from '../services/webSearch';
 
 const FONT = "'Roboto', system-ui, -apple-system, sans-serif";
@@ -11,16 +12,10 @@ interface PerplexityModalProps {
   providerLabel: string;
   loading: boolean;
   result: WebSearchResult | null;
-  savedResult?: string;  // JSON compact de analyseIA pour ouverture sans re-analyse
+  savedResult?: string;
   error: string | null;
   onClose: () => void;
   onApply?: (prixIACible: number | null, recommandation: string) => void;
-}
-
-function scoreStyle(score: number): { color: string; label: string } {
-  if (score >= 75) return { color: '#16A34A', label: 'Recommandé' };
-  if (score >= 50) return { color: '#F59E0B', label: 'Acceptable' };
-  return { color: '#EF4444', label: 'Déconseillé' };
 }
 
 // Section identique aux cards de l'app
@@ -43,10 +38,41 @@ const Section: React.FC<{ title: string; icon: string; children: React.ReactNode
   </div>
 );
 
+// ── Carte prix ─────────────────────────────────────────────────────────────
+const PriceCard: React.FC<{ label: string; value: string | null; icon: string; color: string }> = ({ label, value, icon, color }) => (
+  <div style={{
+    background: value ? hexAlpha(color, 0.05) : hexAlpha('#1A2332', 0.03),
+    border: `1px solid ${value ? hexAlpha(color, 0.18) : hexAlpha('#1A2332', 0.07)}`,
+    borderRadius: theme.radius.sm,
+    padding: '10px 12px',
+    display: 'flex', flexDirection: 'column', gap: 4,
+    fontFamily: FONT,
+  }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span className="material-symbols-rounded" style={{ fontSize: 13, color: value ? color : hexAlpha(theme.text.secondary, 0.35) }}>{icon}</span>
+      <span style={{
+        fontSize: 9, fontWeight: 700,
+        color: hexAlpha(theme.text.secondary, 0.55),
+        letterSpacing: 0.5, textTransform: 'uppercase', fontFamily: FONT,
+      }}>{label}</span>
+    </div>
+    <span style={{ fontSize: 14, fontWeight: 800, color: value ? color : hexAlpha(theme.text.secondary, 0.25), fontFamily: FONT }}>
+      {value ?? '—'}
+    </span>
+  </div>
+);
+
 const PerplexityModal: React.FC<PerplexityModalProps> = ({
   itemTitle, itemUrl, providerLabel, loading, result, savedResult, error, onClose, onApply,
 }) => {
-  // Si on ouvre depuis le rapport sauvegardé (pas de nouvelle analyse), on reconstruit le résultat
+  const { t } = useLang();
+
+  const scoreStyle = (score: number): { color: string; label: string } => {
+    if (score >= 75) return { color: '#16A34A', label: t.perplexityScoreGood };
+    if (score >= 50) return { color: '#F59E0B', label: t.perplexityScoreOk };
+    return { color: '#EF4444', label: t.perplexityScoreBad };
+  };
+
   const effectiveResult: WebSearchResult | null = result ?? (savedResult
     ? (() => { try { return { summary: '', structured: JSON.parse(savedResult) }; } catch { return null; } })()
     : null);
@@ -76,7 +102,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: theme.bg.secondary,    // même fond que l'app
+          background: theme.bg.secondary,
           borderRadius: theme.radius.xl,
           border: `1px solid ${hexAlpha(theme.accent.gold, 0.20)}`,
           width: '100%', maxWidth: 580,
@@ -109,7 +135,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                 color: hexAlpha(theme.accent.gold, 0.85),
                 letterSpacing: 0.6, textTransform: 'uppercase', fontFamily: FONT,
               }}>
-                Analyse IA · {s?.usedProvider ?? providerLabel}
+                {t.perplexityAnalyzeLabel} · {s?.usedProvider ?? providerLabel}
               </span>
               {isFromSaved && (
                 <span style={{
@@ -118,7 +144,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                   background: hexAlpha(theme.accent.teal ?? '#0EA5E9', 0.10),
                   border: `1px solid ${hexAlpha(theme.accent.teal ?? '#0EA5E9', 0.22)}`,
                   borderRadius: 4, padding: '2px 6px', letterSpacing: 0.4, textTransform: 'uppercase',
-                }}>Rapport sauvegardé</span>
+                }}>{t.perplexitySavedReport}</span>
               )}
             </div>
             <div style={{
@@ -161,7 +187,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                 borderTopColor: theme.accent.gold,
                 animation: 'spin 0.8s linear infinite',
               }} />
-              <span style={{ fontSize: 13, color: theme.text.secondary, fontFamily: FONT }}>Analyse en cours…</span>
+              <span style={{ fontSize: 13, color: theme.text.secondary, fontFamily: FONT }}>{t.perplexityLoading}</span>
             </div>
           )}
 
@@ -172,7 +198,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
               border: `1px solid ${hexAlpha('#EF4444', 0.20)}`,
               borderRadius: theme.radius.md, padding: '12px 14px',
             }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#DC2626', marginBottom: 4, fontFamily: FONT }}>Erreur d'analyse</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#DC2626', marginBottom: 4, fontFamily: FONT }}>{t.perplexityErrorTitle}</div>
               <div style={{ fontSize: 12, color: theme.text.secondary, lineHeight: 1.6, fontFamily: FONT }}>{error}</div>
             </div>
           )}
@@ -193,8 +219,8 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                   </span>
                   <span style={{ fontSize: 12, color: s.accessError ? '#B91C1C' : '#92400E', lineHeight: 1.55, fontFamily: FONT }}>
                     {s.accessError
-                      ? `Accès au site impossible${s.usedProvider ? ` (${s.usedProvider})` : ''}. Prix basés sur des estimations.`
-                      : `Analyse via ${s.usedProvider} (l'IA principale n'a pas pu accéder au site).`}
+                      ? t.perplexityAccessError(s.usedProvider ?? '')
+                      : t.perplexityFallbackMsg(s.usedProvider ?? '')}
                   </span>
                 </div>
               )}
@@ -214,7 +240,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                     <div style={{
                       fontSize: 10, fontWeight: 700, color: hexAlpha(theme.accent.gold, 0.75),
                       letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT,
-                    }}>Objet</div>
+                    }}>{t.perplexityObject}</div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: theme.text.primary, fontFamily: FONT }}>{s.objectName || itemTitle}</div>
                     {itemUrl && (
                       <a href={itemUrl} target="_blank" rel="noopener noreferrer" style={{
@@ -223,7 +249,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                         fontFamily: FONT,
                       }}>
                         <span className="material-symbols-rounded" style={{ fontSize: 12 }}>open_in_new</span>
-                        Voir l'annonce
+                        {t.perplexityViewListing}
                       </a>
                     )}
                   </div>
@@ -232,7 +258,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                       <div style={{
                         fontSize: 10, fontWeight: 700, color: hexAlpha(theme.text.secondary, 0.6),
                         letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2, fontFamily: FONT,
-                      }}>Prix affiché</div>
+                      }}>{t.perplexityDisplayedPrice}</div>
                       <div style={{ fontSize: 18, fontWeight: 800, color: theme.text.primary, fontFamily: FONT }}>{s.platformPrice}</div>
                     </div>
                   )}
@@ -280,17 +306,17 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
 
               {/* Prix conseillés */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <PriceCard label="Achat conseillé"   value={s.suggestedBuyPrice} icon="shopping_cart" color="#EF4444" />
-                <PriceCard label="Proposition vente" value={s.recommendedPrice}  icon="sell"          color="#16A34A" />
+                <PriceCard label={t.perplexityBuyPrice}        value={s.suggestedBuyPrice} icon="shopping_cart" color="#EF4444" />
+                <PriceCard label={t.perplexitySellPrice}       value={s.recommendedPrice}  icon="sell"          color="#16A34A" />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <PriceCard label="Fourchette marché" value={s.priceRange}       icon="trending_up" color={theme.accent.blue} />
-                <PriceCard label="Marge potentielle" value={s.potentialMargin}  icon="savings"     color={theme.accent.gold} />
+                <PriceCard label={t.perplexityMarketRange}     value={s.priceRange}        icon="trending_up"   color={theme.accent.blue} />
+                <PriceCard label={t.perplexityPotentialMargin} value={s.potentialMargin}   icon="savings"       color={theme.accent.gold} />
               </div>
 
               {/* Conseils */}
               {s.tips.length > 0 && (
-                <Section title="Conseils" icon="lightbulb">
+                <Section title={t.perplexityTips} icon="lightbulb">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                     {s.tips.map((tip, i) => (
                       <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -310,7 +336,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
 
               {/* Articles similaires */}
               {s.similarItems.length > 0 && (
-                <Section title={`Articles similaires`} icon="compare_arrows">
+                <Section title={t.perplexitySimilarItems} icon="compare_arrows">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {s.similarItems.map((si: SimilarItem, i: number) => (
                       <a
@@ -354,7 +380,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
 
               {/* Sources Perplexity */}
               {effectiveResult.sources && effectiveResult.sources.length > 0 && (
-                <Section title="Sources" icon="link">
+                <Section title={t.perplexitySources} icon="link">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {effectiveResult.sources!.map((src, i) => (
                       <a
@@ -394,7 +420,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
               <div style={{
                 fontSize: 10, fontWeight: 700, color: hexAlpha(theme.accent.gold, 0.8),
                 letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8, fontFamily: FONT,
-              }}>Analyse</div>
+              }}>{t.perplexityAnalyzeSection}</div>
               <div style={{ fontSize: 13, color: theme.text.secondary, lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: FONT }}>
                 {effectiveResult.summary}
               </div>
@@ -411,7 +437,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
           flexShrink: 0, gap: 8, fontFamily: FONT,
         }}>
           <span style={{ fontSize: 11, color: hexAlpha(theme.text.secondary, 0.50), fontFamily: FONT }}>
-            {s?.usedProvider ? `Analysé par ${s.usedProvider}` : `Via ${providerLabel}`}
+            {s?.usedProvider ? t.perplexityAnalyzedBy(s.usedProvider) : t.perplexityVia(providerLabel)}
           </span>
           <div style={{ display: 'flex', gap: 8 }}>
             {onApply && s && !s.accessError && s.recommendedPrice && (
@@ -431,7 +457,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
                 onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 2px 8px ${hexAlpha(theme.accent.gold, 0.30)}`; }}
               >
                 <span className="material-symbols-rounded" style={{ fontSize: 15 }}>check_circle</span>
-                Appliquer à la ligne
+                {t.perplexityApply}
               </button>
             )}
             <button
@@ -446,7 +472,7 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
               onMouseEnter={e => { e.currentTarget.style.background = hexAlpha(theme.text.secondary, 0.16); }}
               onMouseLeave={e => { e.currentTarget.style.background = hexAlpha(theme.text.secondary, 0.09); }}
             >
-              Fermer
+              {t.perplexityClose}
             </button>
           </div>
         </div>
@@ -455,29 +481,5 @@ const PerplexityModal: React.FC<PerplexityModalProps> = ({
     document.body,
   );
 };
-
-// ── Carte prix ─────────────────────────────────────────────────────────────
-const PriceCard: React.FC<{ label: string; value: string | null; icon: string; color: string }> = ({ label, value, icon, color }) => (
-  <div style={{
-    background: value ? hexAlpha(color, 0.05) : hexAlpha('#1A2332', 0.03),
-    border: `1px solid ${value ? hexAlpha(color, 0.18) : hexAlpha('#1A2332', 0.07)}`,
-    borderRadius: theme.radius.sm,
-    padding: '10px 12px',
-    display: 'flex', flexDirection: 'column', gap: 4,
-    fontFamily: FONT,
-  }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <span className="material-symbols-rounded" style={{ fontSize: 13, color: value ? color : hexAlpha(theme.text.secondary, 0.35) }}>{icon}</span>
-      <span style={{
-        fontSize: 9, fontWeight: 700,
-        color: hexAlpha(theme.text.secondary, 0.55),
-        letterSpacing: 0.5, textTransform: 'uppercase', fontFamily: FONT,
-      }}>{label}</span>
-    </div>
-    <span style={{ fontSize: 14, fontWeight: 800, color: value ? color : hexAlpha(theme.text.secondary, 0.25), fontFamily: FONT }}>
-      {value ?? '—'}
-    </span>
-  </div>
-);
 
 export default PerplexityModal;

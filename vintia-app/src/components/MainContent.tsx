@@ -4,6 +4,7 @@ import type { DailyRecommendation } from '../services/dailyRecommendation';
 import { theme, hexAlpha } from '../theme';
 import ItemTable from './ItemTable/ItemTable';
 import Tooltip from './ItemTable/Tooltip';
+import { useLang } from '../contexts/LanguageContext';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 640);
@@ -19,6 +20,7 @@ function useIsMobile() {
 // ── Barre de statistiques ──────────────────────────────────────────────────
 const StatsBar: React.FC<{ items: Item[] }> = ({ items }) => {
   const isMobile = useIsMobile();
+  const { t } = useLang();
   const actifs     = items.filter(i => i.transaction !== 'perdu');
   const achats     = actifs.filter(i => i.transaction === 'achat');
   const ventes     = actifs.filter(i => i.transaction === 'vente');
@@ -56,11 +58,11 @@ const StatsBar: React.FC<{ items: Item[] }> = ({ items }) => {
         paddingBlock: 0, height: 46,
       }}>
         {[
-          { label: 'Achetés',  value: `${achats.length}`,  color: hexAlpha('#EF4444', 0.9), tip: 'Articles achetés (−)' },
-          { label: 'Vendus',   value: `${ventes.length}`,  color: '#16A34A',                tip: 'Articles mis en vente (+)' },
-          { label: 'CA',       value: `+${totalVendu.toFixed(0)} €`, color: '#16A34A',      tip: "Chiffre d'affaires" },
-          { label: 'Achats €', value: `-${totalAchat.toFixed(0)} €`, color: hexAlpha('#EF4444', 0.9), tip: 'Total achats' },
-          { label: 'Marge',    value: `${totalMarge >= 0 ? '+' : ''}${totalMarge.toFixed(0)} €`, color: totalMarge >= 0 ? '#16A34A' : '#EF4444', tip: 'Marge nette' },
+          { label: t.statsMobileAchetes, value: `${achats.length}`,  color: hexAlpha('#EF4444', 0.9), tip: t.statsMobileTipAchetes },
+          { label: t.statsMobileVendus,  value: `${ventes.length}`,  color: '#16A34A',                tip: t.statsMobileTipVendus },
+          { label: t.statsMobileCA,      value: `+${totalVendu.toFixed(0)} €`, color: '#16A34A',      tip: t.statsTipCA },
+          { label: t.statsMobileAchatsEur, value: `-${totalAchat.toFixed(0)} €`, color: hexAlpha('#EF4444', 0.9), tip: t.statsTipTotalAchats },
+          { label: t.statsMobileMarge,   value: `${totalMarge >= 0 ? '+' : ''}${totalMarge.toFixed(0)} €`, color: totalMarge >= 0 ? '#16A34A' : '#EF4444', tip: t.statsTipMarge },
         ].map(({ label, value, color, tip }, i, arr) => (
           <React.Fragment key={label}>
             <Tooltip text={tip}>
@@ -94,24 +96,24 @@ const StatsBar: React.FC<{ items: Item[] }> = ({ items }) => {
       flexShrink: 0, flexWrap: 'nowrap',
       paddingBlock: 10,
     }}>
-      <Stat label="Articles"       value={`${actifs.length}`}                                      tip="Articles actifs (hors perdus)" />
+      <Stat label={t.statsArticles}    value={`${actifs.length}`}                                      tip={t.statsTipArticles} />
       <Sep />
-      <Stat label="Achats"         value={`${achats.length}`}   color={hexAlpha('#EF4444', 0.9)}   tip="Articles achat (−)" />
+      <Stat label={t.statsAchats}      value={`${achats.length}`}   color={hexAlpha('#EF4444', 0.9)}   tip={t.statsTipAchats} />
       <Sep />
-      <Stat label="Ventes"         value={`${ventes.length}`}   color="#16A34A"                    tip="Articles vente (+)" />
+      <Stat label={t.statsVentes}      value={`${ventes.length}`}   color="#16A34A"                    tip={t.statsTipVentes} />
       <Sep />
-      <Stat label="En attente"     value={`${attentes.length}`} color="#F59E0B"                    tip="Articles en étude (?)" />
+      <Stat label={t.statsAttente}     value={`${attentes.length}`} color="#F59E0B"                    tip={t.statsTipAttente} />
       <Sep />
-      <Stat label="Vendus"         value={`${vendus.length}`}   color={theme.accent.teal}          tip="Articles avec prix vendu" />
+      <Stat label={t.statsVendus}      value={`${vendus.length}`}   color={theme.accent.teal}          tip={t.statsTipVendus} />
       <Sep />
-      <Stat label="Chiffre d'aff." value={`+${totalVendu.toFixed(2)} €`} color="#16A34A"           tip="Chiffre d'affaires" />
+      <Stat label={t.statsCA}          value={`+${totalVendu.toFixed(2)} €`} color="#16A34A"           tip={t.statsTipCA} />
       <Sep />
-      <Stat label="Total achats"   value={`-${totalAchat.toFixed(2)} €`} color="#EF4444"           tip="Total des achats" />
+      <Stat label={t.statsTotalAchats} value={`-${totalAchat.toFixed(2)} €`} color="#EF4444"           tip={t.statsTipTotalAchats} />
       <Sep />
-      <Stat label="Marge"
+      <Stat label={t.statsMarge}
         value={`${totalMarge >= 0 ? '+' : ''}${totalMarge.toFixed(2)} €`}
         color={totalMarge >= 0 ? '#16A34A' : '#EF4444'}
-        tip="Marge nette = CA − Achats" />
+        tip={t.statsTipMarge} />
     </div>
   );
 };
@@ -126,13 +128,14 @@ interface AIHeaderProps {
 
 const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) => {
   const isMobile = useIsMobile();
+  const { t, lang } = useLang();
   const [collapsed, setCollapsed] = useState(false);
   const generatedLabel = reco?.generatedAt
-    ? new Date(reco.generatedAt).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    ? new Date(reco.generatedAt).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     : null;
 
   const expiresLabel = reco?.expiresAt
-    ? new Date(reco.expiresAt).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    ? new Date(reco.expiresAt).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     : null;
 
   return (
@@ -145,7 +148,7 @@ const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) 
       flexShrink: 0,
       display: 'flex', alignItems: 'flex-start', gap: 10,
     }}>
-      <Tooltip text="Recommandation IA générée à partir de vos données réelles, renouvelée chaque jour à 10h00">
+      <Tooltip text={t.aiRecoTooltip}>
         <span className="material-symbols-rounded" style={{ fontSize: 22, color: theme.accent.gold, flexShrink: 0, marginTop: 2 }}>
           auto_awesome
         </span>
@@ -159,7 +162,7 @@ const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) 
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
             <span style={{ fontSize: 12, fontWeight: 700, color: theme.accent.gold, letterSpacing: 0.5, textTransform: 'uppercase' }}>
-              Recommandation IA du jour
+              {t.aiDailyReco}
             </span>
             {(!isMobile || !collapsed) && generatedLabel && !loading && (
               <span style={{
@@ -167,11 +170,11 @@ const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) 
                 background: hexAlpha('#1A2332', 0.05),
                 borderRadius: 4, padding: '2px 6px', fontWeight: 500,
               }}>
-                Généré le {generatedLabel}
+                {t.aiGeneratedAt(generatedLabel)}
               </span>
             )}
             {(!isMobile || !collapsed) && expiresLabel && !loading && (
-              <Tooltip text={`Se renouvelle automatiquement le ${expiresLabel}`}>
+              <Tooltip text={`↻ ${expiresLabel}`}>
                 <span style={{
                   fontSize: 10, color: theme.accent.gold,
                   background: hexAlpha(theme.accent.gold, 0.08),
@@ -191,7 +194,7 @@ const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) 
 
           {/* Bouton refresh — masqué en mobile replié */}
           {(!isMobile || !collapsed) && (
-            <Tooltip text="Régénérer maintenant (efface le cache)">
+            <Tooltip text={t.aiRefreshTooltip}>
               <button
                 data-testid="tutorial-refresh-reco"
                 onClick={e => { e.stopPropagation(); onRefresh(); }}
@@ -210,7 +213,7 @@ const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) 
                   animation: loading ? 'spin 0.9s linear infinite' : 'none',
                 }}>refresh</span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: theme.accent.gold }}>
-                  {loading ? 'Analyse…' : 'Actualiser'}
+                  {loading ? t.aiAnalyzing : t.aiRefresh}
                 </span>
               </button>
             </Tooltip>
@@ -233,7 +236,7 @@ const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span className="material-symbols-rounded" style={{ fontSize: 14, color: '#EF4444' }}>warning</span>
               <span style={{ fontSize: 12, color: hexAlpha('#EF4444', 0.8) }}>
-                {error.includes('manquante') ? 'Clé API non configurée — ajoutez-la dans Paramètres pour activer la recommandation.' : error}
+                {error.includes('manquante') || error.includes('not configured') ? t.aiNoKeyError : error}
               </span>
             </div>
           ) : reco ? (
@@ -242,7 +245,7 @@ const AIHeader: React.FC<AIHeaderProps> = ({ reco, loading, error, onRefresh }) 
             </p>
           ) : (
             <span style={{ fontSize: 12, color: hexAlpha(theme.text.secondary, 0.45) }}>
-              Aucune recommandation — configurez une clé IA dans les Paramètres.
+              {t.aiNoReco}
             </span>
           )
         )}

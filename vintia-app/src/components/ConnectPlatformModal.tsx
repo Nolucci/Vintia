@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Platform } from '../types';
 import { theme, hexAlpha } from '../theme';
+import { useLang } from '../contexts/LanguageContext';
 
 const PRESET_PLATFORMS = [
   { label: 'Vinted',     icon: 'store',         accentColor: '#09B1BA', url: 'https://www.vinted.fr' },
@@ -17,6 +18,7 @@ interface ConnectPlatformModalProps {
 }
 
 const ConnectPlatformModal: React.FC<ConnectPlatformModalProps> = ({ onClose, onAdd }) => {
+  const { t } = useLang();
   const [step, setStep] = useState<'choose' | 'custom'>('choose');
   const [custom, setCustom] = useState({ label: '', icon: 'storefront', accentColor: '#D79A2A', url: '' });
 
@@ -51,10 +53,10 @@ const ConnectPlatformModal: React.FC<ConnectPlatformModalProps> = ({ onClose, on
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <span style={{ fontSize: 18, fontWeight: 700, color: theme.text.primary }}>
-              Connecter un site
+              {t.connectTitle}
             </span>
             <p style={{ margin: 0, fontSize: 12, color: theme.text.secondary, marginTop: 2 }}>
-              Choisissez une plateforme ou ajoutez la vôtre
+              {t.connectSubtitle}
             </p>
           </div>
           <button onClick={onClose} style={{
@@ -68,15 +70,15 @@ const ConnectPlatformModal: React.FC<ConnectPlatformModalProps> = ({ onClose, on
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8 }}>
-          {(['choose', 'custom'] as const).map(t => (
-            <button key={t} onClick={() => setStep(t)} style={{
+          {(['choose', 'custom'] as const).map(tab => (
+            <button key={tab} onClick={() => setStep(tab)} style={{
               flex: 1, height: 36, borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: step === t ? hexAlpha(theme.accent.gold, 0.12) : hexAlpha('#8A9BA8', 0.06),
-              color: step === t ? theme.accent.gold : theme.text.secondary,
-              fontWeight: step === t ? 700 : 500, fontSize: 13,
+              background: step === tab ? hexAlpha(theme.accent.gold, 0.12) : hexAlpha('#8A9BA8', 0.06),
+              color: step === tab ? theme.accent.gold : theme.text.secondary,
+              fontWeight: step === tab ? 700 : 500, fontSize: 13,
               transition: 'all 0.15s',
             }}>
-              {t === 'choose' ? 'Sites prédéfinis' : 'Site personnalisé'}
+              {tab === 'choose' ? t.connectTabPreset : t.connectTabCustom}
             </button>
           ))}
         </div>
@@ -113,12 +115,12 @@ const ConnectPlatformModal: React.FC<ConnectPlatformModalProps> = ({ onClose, on
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: theme.text.secondary, display: 'block', marginBottom: 6 }}>
-                Nom du site *
+                {t.connectCustomName}
               </label>
               <input
                 value={custom.label}
                 onChange={e => setCustom(prev => ({ ...prev, label: e.target.value }))}
-                placeholder="Ex: Depop, Vestiaire..."
+                placeholder={t.connectCustomNamePlaceholder}
                 style={{
                   width: '100%', height: 40, borderRadius: 10, padding: '0 12px',
                   border: `1.5px solid ${hexAlpha(theme.accent.gold, 0.30)}`,
@@ -129,7 +131,7 @@ const ConnectPlatformModal: React.FC<ConnectPlatformModalProps> = ({ onClose, on
             </div>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: theme.text.secondary, display: 'block', marginBottom: 6 }}>
-                URL du site
+                {t.connectCustomUrl}
               </label>
               <input
                 value={custom.url}
@@ -145,7 +147,7 @@ const ConnectPlatformModal: React.FC<ConnectPlatformModalProps> = ({ onClose, on
             </div>
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: theme.text.secondary, display: 'block', marginBottom: 6 }}>
-                Couleur
+                {t.connectCustomColor}
               </label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <input
@@ -163,7 +165,7 @@ const ConnectPlatformModal: React.FC<ConnectPlatformModalProps> = ({ onClose, on
               color: theme.accent.buttonText, fontSize: 14, fontWeight: 700,
               boxShadow: `0 4px 12px ${hexAlpha(theme.accent.gold, 0.30)}`,
             }}>
-              Ajouter ce site
+              {t.connectCustomAdd}
             </button>
           </div>
         )}

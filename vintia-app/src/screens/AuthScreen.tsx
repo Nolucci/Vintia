@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { theme, hexAlpha } from '../theme';
 import BackgroundDecorations from '../components/BackgroundDecorations';
+import { useLang } from '../contexts/LanguageContext';
 
 const gradientBg = `linear-gradient(180deg, ${theme.bg.secondary} 0%, ${theme.bg.primary} 50%, ${theme.bg.bottom} 100%)`;
 
@@ -16,15 +17,16 @@ const inputBase: React.CSSProperties = {
 
 // ── Indicateur de force du mot de passe ───────────────────────────────────
 const PasswordStrength: React.FC<{ password: string }> = ({ password }) => {
+  const { t } = useLang();
   const checks = [
-    { label: '8+ caractères',     ok: password.length >= 8 },
-    { label: 'Majuscule',         ok: /[A-Z]/.test(password) },
-    { label: 'Chiffre',           ok: /[0-9]/.test(password) },
-    { label: 'Caractère spécial', ok: /[^A-Za-z0-9]/.test(password) },
+    { label: t.authPwChars,   ok: password.length >= 8 },
+    { label: t.authPwUpper,   ok: /[A-Z]/.test(password) },
+    { label: t.authPwDigit,   ok: /[0-9]/.test(password) },
+    { label: t.authPwSpecial, ok: /[^A-Za-z0-9]/.test(password) },
   ];
   const score = checks.filter(c => c.ok).length;
   const colors = ['#EF4444', '#F97316', '#EAB308', '#22C55E'];
-  const labels = ['Très faible', 'Faible', 'Moyen', 'Fort'];
+  const labels = [t.authPwWeak0, t.authPwWeak1, t.authPwWeak2, t.authPwWeak3];
 
   if (!password) return null;
 
@@ -82,7 +84,7 @@ const PasswordInput: React.FC<{
   visible: boolean; onToggle: () => void;
   placeholder?: string;
   onKeyDown?: React.KeyboardEventHandler;
-}> = ({ value, onChange, visible, onToggle, placeholder = 'Mot de passe', onKeyDown }) => (
+}> = ({ value, onChange, visible, onToggle, placeholder, onKeyDown }) => (
   <div style={{ position: 'relative' }}>
     <input
       type={visible ? 'text' : 'password'}
@@ -117,6 +119,7 @@ interface AuthScreenProps {
 type View = 'welcome' | 'login' | 'register';
 
 const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
+  const { t } = useLang();
   const [view, setView] = useState<View>('welcome');
 
   // Login
@@ -146,7 +149,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
     });
     setLoading(false);
     if (error) {
-      setLoginError('Email ou mot de passe incorrect.');
+      setLoginError(t.authLoginError);
       return;
     }
     onAuthSuccess();
@@ -154,10 +157,10 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
 
   const handleRegister = async () => {
     setRegError('');
-    if (!regName.trim()) { setRegError('Le nom est requis'); return; }
-    if (!regEmail.includes('@')) { setRegError('Adresse e-mail invalide'); return; }
-    if (regPw.length < 8) { setRegError('Mot de passe trop court (8 caractères min)'); return; }
-    if (regPw !== regPw2) { setRegError('Les mots de passe ne correspondent pas'); return; }
+    if (!regName.trim()) { setRegError(t.authNameRequired); return; }
+    if (!regEmail.includes('@')) { setRegError(t.authInvalidEmail); return; }
+    if (regPw.length < 8) { setRegError(t.authPasswordTooShort); return; }
+    if (regPw !== regPw2) { setRegError(t.authPasswordMismatch); return; }
 
     setLoading(true);
     const initials = regName.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -174,26 +177,24 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
     setLoading(false);
     if (error) {
       setRegError(error.message === 'User already registered'
-        ? 'Un compte existe déjà avec cet e-mail.'
+        ? t.authEmailExists
         : error.message);
       return;
     }
-    // Si la confirmation email est désactivée dans Supabase, la session est
-    // créée immédiatement — onAuthStateChange s'en charge. Sinon on force.
     if (data.session) {
       onAuthSuccess();
     } else {
-      setRegError('Vérifie ta boîte mail pour confirmer ton compte.');
+      setRegError(t.authCheckEmail);
     }
   };
 
   // ── Vue : onboarding ─────────────────────────────────────────────────────
   if (view === 'welcome') {
     const steps = [
-      { icon: 'storefront',        title: 'Connectez vos plateformes',  desc: 'Vinted, Leboncoin, eBay… ajoutez vos plateformes de revente.' },
-      { icon: 'add_shopping_cart', title: 'Ajoutez vos articles',        desc: 'Enregistrez achats, ventes et articles en attente en quelques secondes.' },
-      { icon: 'auto_awesome',      title: 'Laissez l\'IA travailler',    desc: 'Analyse de marché, prix conseillés et recommandation quotidienne générés automatiquement.' },
-      { icon: 'savings',           title: 'Optimisez vos marges',        desc: 'Comparez, ajustez vos prix et suivez vos gains en temps réel.' },
+      { icon: 'storefront',        title: t.authStep1Title, desc: t.authStep1Desc },
+      { icon: 'add_shopping_cart', title: t.authStep2Title, desc: t.authStep2Desc },
+      { icon: 'auto_awesome',      title: t.authStep3Title, desc: t.authStep3Desc },
+      { icon: 'savings',           title: t.authStep4Title, desc: t.authStep4Desc },
     ];
     return (
       <div style={{
@@ -218,7 +219,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 32, fontWeight: 900, color: theme.text.primary, letterSpacing: 0.5 }}>Vintia</div>
               <div style={{ fontSize: 15, color: theme.text.secondary, marginTop: 4 }}>
-                Votre gestionnaire de revente intelligent
+                {t.authWelcomeTagline}
               </div>
             </div>
           </div>
@@ -270,7 +271,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
               onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 6px 20px ${hexAlpha(theme.accent.gold, 0.35)}`; e.currentTarget.style.transform = 'none'; }}
             >
               <span className="material-symbols-rounded" style={{ fontSize: 20 }}>person_add</span>
-              Créer mon compte gratuitement
+              {t.authCreateAccount}
             </button>
             <button
               onClick={() => setView('login')}
@@ -281,7 +282,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
                 color: theme.text.secondary, fontSize: 14, fontWeight: 600,
               }}
             >
-              J'ai déjà un compte — Se connecter
+              {t.authAlreadyAccount}
             </button>
           </div>
         </div>
@@ -308,19 +309,19 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
             }}
           >
             <span className="material-symbols-rounded" style={{ fontSize: 16 }}>arrow_back</span>
-            Retour
+            {t.authBack}
           </button>
 
           <div>
-            <p style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: theme.text.primary }}>Se connecter</p>
-            <p style={{ margin: 0, fontSize: 13, color: theme.text.secondary }}>Accédez à votre espace Vintia</p>
+            <p style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: theme.text.primary }}>{t.authLoginTitle}</p>
+            <p style={{ margin: 0, fontSize: 13, color: theme.text.secondary }}>{t.authLoginSubtitle}</p>
           </div>
 
           <input
             type="email"
             value={loginEmail}
             onChange={e => setLoginEmail(e.target.value)}
-            placeholder="Adresse e-mail"
+            placeholder={t.authEmail}
             style={inputBase}
             onFocus={e => { e.currentTarget.style.borderColor = theme.accent.gold; }}
             onBlur={e => { e.currentTarget.style.borderColor = hexAlpha(theme.accent.gold, 0.28); }}
@@ -329,6 +330,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
           <PasswordInput
             value={loginPw} onChange={setLoginPw}
             visible={loginPwVisible} onToggle={() => setLoginPwVisible(v => !v)}
+            placeholder={t.authPassword}
             onKeyDown={e => { if (e.key === 'Enter') handleLogin(); }}
           />
 
@@ -362,16 +364,16 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
               ? <span className="material-symbols-rounded" style={{ fontSize: 18, animation: 'spin 1s linear infinite' }}>progress_activity</span>
               : <span className="material-symbols-rounded" style={{ fontSize: 18 }}>login</span>
             }
-            {loading ? 'Connexion...' : 'Se connecter'}
+            {loading ? t.authLoggingIn : t.authLogin}
           </button>
 
           <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: theme.text.secondary }}>
-            Pas encore de compte ?{' '}
+            {t.authNoAccount}{' '}
             <button
               onClick={() => setView('register')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.accent.gold, fontWeight: 700, fontSize: 13 }}
             >
-              Créer un compte
+              {t.authCreateAccountLink}
             </button>
           </p>
         </Card>
@@ -397,21 +399,21 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
           }}
         >
           <span className="material-symbols-rounded" style={{ fontSize: 16 }}>arrow_back</span>
-          Retour
+          {t.authBack}
         </button>
 
         <div>
           <p style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: theme.text.primary }}>
-            Créer un compte
+            {t.authRegisterTitle}
           </p>
           <p style={{ margin: 0, fontSize: 13, color: theme.text.secondary }}>
-            Gérez vos ventes sur toutes vos plateformes
+            {t.authRegisterSubtitle}
           </p>
         </div>
 
         <input
           value={regName} onChange={e => setRegName(e.target.value)}
-          placeholder="Votre prénom et nom"
+          placeholder={t.authFullName}
           style={inputBase}
           onFocus={e => { e.currentTarget.style.borderColor = theme.accent.gold; }}
           onBlur={e => { e.currentTarget.style.borderColor = hexAlpha(theme.accent.gold, 0.28); }}
@@ -420,7 +422,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
         <input
           type="email"
           value={regEmail} onChange={e => setRegEmail(e.target.value)}
-          placeholder="Adresse e-mail"
+          placeholder={t.authEmail}
           style={inputBase}
           onFocus={e => { e.currentTarget.style.borderColor = theme.accent.gold; }}
           onBlur={e => { e.currentTarget.style.borderColor = hexAlpha(theme.accent.gold, 0.28); }}
@@ -430,7 +432,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
           <PasswordInput
             value={regPw} onChange={setRegPw}
             visible={regPwVisible} onToggle={() => setRegPwVisible(v => !v)}
-            placeholder="Mot de passe"
+            placeholder={t.authPassword}
           />
           <PasswordStrength password={regPw} />
         </div>
@@ -438,7 +440,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
         <PasswordInput
           value={regPw2} onChange={setRegPw2}
           visible={regPw2Visible} onToggle={() => setRegPw2Visible(v => !v)}
-          placeholder="Confirmer le mot de passe"
+          placeholder={t.authConfirmPassword}
           onKeyDown={e => { if (e.key === 'Enter') handleRegister(); }}
         />
 
@@ -472,16 +474,16 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess }) => {
             ? <span className="material-symbols-rounded" style={{ fontSize: 18, animation: 'spin 1s linear infinite' }}>progress_activity</span>
             : <span className="material-symbols-rounded" style={{ fontSize: 18 }}>person_add</span>
           }
-          {loading ? 'Création...' : 'Créer mon compte'}
+          {loading ? t.authRegistering : t.authRegister}
         </button>
 
         <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: theme.text.secondary }}>
-          Déjà un compte ?{' '}
+          {t.authHasAccount}{' '}
           <button
             onClick={() => setView('login')}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: theme.accent.gold, fontWeight: 700, fontSize: 13 }}
           >
-            Se connecter
+            {t.authLoginLink}
           </button>
         </p>
       </Card>

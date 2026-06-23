@@ -2,10 +2,13 @@ import React, { useRef, useState } from 'react';
 import type { Item, Platform, UserProfile } from '../types';
 import { theme, hexAlpha } from '../theme';
 import Tooltip from './ItemTable/Tooltip';
+import { useLang } from '../contexts/LanguageContext';
 
 // ── Entrée "Tout afficher" ────────────────────────────────────────────────
-const AllItem: React.FC<{ isSelected: boolean; onClick: () => void }> = ({ isSelected, onClick }) => (
-  <Tooltip text="Afficher tous les articles, toutes plateformes confondues" placement="bottom">
+const AllItem: React.FC<{ isSelected: boolean; onClick: () => void }> = ({ isSelected, onClick }) => {
+  const { t } = useLang();
+  return (
+  <Tooltip text={t.allItemsTooltip} placement="bottom">
     <div
       data-testid="tutorial-all-items"
       onClick={onClick}
@@ -45,11 +48,12 @@ const AllItem: React.FC<{ isSelected: boolean; onClick: () => void }> = ({ isSel
         color: isSelected ? theme.accent.gold : '#000000',
         letterSpacing: 0.3, marginTop: 3, textAlign: 'center',
       }}>
-        Tout
+        {t.allItems}
       </span>
     </div>
   </Tooltip>
-);
+  );
+};
 
 // ── Entrée plateforme (draggable) ─────────────────────────────────────────
 const PlatformItem: React.FC<{
@@ -68,6 +72,7 @@ const PlatformItem: React.FC<{
   const color = platform.accentColor;
   const [gearHover, setGearHover] = useState(false);
   const [gearSpin, setGearSpin] = useState(false);
+  const { t } = useLang();
 
   const handleGearClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -77,7 +82,7 @@ const PlatformItem: React.FC<{
   };
 
   return (
-    <Tooltip text={`${platform.label}${platform.url ? ` — ${platform.url.replace('https://', '')}` : ''} · ${itemCount} ligne${itemCount !== 1 ? 's' : ''}`}>
+    <Tooltip text={t.platformTooltip(platform.label, platform.url ?? '', itemCount)}>
       <div
         draggable
         onClick={onClick}
@@ -136,7 +141,7 @@ const PlatformItem: React.FC<{
 
         {/* Roue crantée — visible uniquement si sélectionnée */}
         {isSelected && (
-          <Tooltip text={`Modifier ${platform.label}`} placement="bottom">
+          <Tooltip text={`${t.platformEditTitle} — ${platform.label}`} placement="bottom">
             <div
               onClick={handleGearClick}
               onMouseEnter={() => setGearHover(true)}
@@ -191,6 +196,7 @@ const SideNav: React.FC<SideNavProps> = ({
 }) => {
   const dragSrcId = useRef<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const { t } = useLang();
 
   const handleAll = () => {
     if (selectedPlatformId !== null) onSelectPlatform(selectedPlatformId);
@@ -269,7 +275,7 @@ const SideNav: React.FC<SideNavProps> = ({
           />
         ))}
 
-        <Tooltip text="Connecter un nouveau site de vente (Vinted, Leboncoin, eBay...)">
+        <Tooltip text={t.addPlatformTooltip}>
           <div
             data-testid="tutorial-add-platform"
             onClick={onAddPlatform}
@@ -330,7 +336,7 @@ const SideNav: React.FC<SideNavProps> = ({
 
       {/* Bas */}
       <div className="side-nav-bottom" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <Tooltip text="Se déconnecter">
+        <Tooltip text={t.logout}>
           <div
             data-testid="tutorial-logout"
             onClick={onLogout}
@@ -346,7 +352,7 @@ const SideNav: React.FC<SideNavProps> = ({
           </div>
         </Tooltip>
 
-        <Tooltip text={`${user.name} — Paramètres du profil`}>
+        <Tooltip text={`${user.name} — ${t.settingsTitle}`}>
           <div data-testid="tutorial-settings" onClick={onOpenSettings} style={{ cursor: 'pointer' }}>
             {user.avatarUrl ? (
               <img
