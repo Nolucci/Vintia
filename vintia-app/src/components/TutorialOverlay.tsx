@@ -119,7 +119,21 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       placement: 'bottom',
     },
 
-    // ── 5. Ajouter une ligne (vue d'ensemble de la ligne) ───────────────────────
+
+    // ── 6. Ajouter un article ─────────────────────────────────────────────────
+    {
+      target: '[data-testid="tutorial-add-item"]',
+      content: (
+        <div>
+          <h4 style={h4}>{t.tutorialAddItemTitle}</h4>
+          <p style={p}>{t.tutorialAddItemBody}</p>
+          <p style={{ ...p, marginTop: 6 }}>{t.tutorialAddItemNote}</p>
+        </div>
+      ),
+      placement: 'bottom',
+    },
+
+    // ── 7. Ajouter une ligne (vue d'ensemble de la ligne) ───────────────────────
     {
       target: '[data-testid="tutorial-item-row"]',
       targetWaitTimeout: 3000,
@@ -138,7 +152,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       spotlightPadding: 4,
     },
 
-    // ── 6. Colonnes prix ──────────────────────────────────────────────────────
+    // ── 5. Colonnes prix ──────────────────────────────────────────────────────
     {
       target: '[data-testid="tutorial-col-prices"]',
       content: (
@@ -150,19 +164,6 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
             <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>{t.tutorialPricesVente}</span><span style={p}>{t.tutorialPricesVenteDesc}</span></div>
           </div>
           <p style={{ ...p, marginTop: 8 }}>{t.tutorialPricesNote}</p>
-        </div>
-      ),
-      placement: 'bottom',
-    },
-
-    // ── 6. Ajouter un article ─────────────────────────────────────────────────
-    {
-      target: '[data-testid="tutorial-add-item"]',
-      content: (
-        <div>
-          <h4 style={h4}>{t.tutorialAddItemTitle}</h4>
-          <p style={p}>{t.tutorialAddItemBody}</p>
-          <p style={{ ...p, marginTop: 6 }}>{t.tutorialAddItemNote}</p>
         </div>
       ),
       placement: 'bottom',
