@@ -1,4 +1,5 @@
 import type { Item, Platform, AIProvider, AIFallbackKey } from '../types';
+import type { Lang } from '../contexts/LanguageContext';
 
 export interface SimilarItem {
   title: string;
@@ -36,7 +37,7 @@ function extractDomain(url: string): string {
   }
 }
 
-function buildPrompt(item: Item, platformName: string, platformUrl?: string): string {
+function buildPrompt(item: Item, platformName: string, platformUrl?: string, lang: Lang = 'fr'): string {
   const actionLabel = item.transaction === 'achat' ? 'achat'
     : item.transaction === 'vente' ? 'vente'
     : item.transaction === 'attente' ? 'mise en attente'
@@ -55,7 +56,12 @@ function buildPrompt(item: Item, platformName: string, platformUrl?: string): st
     ? `Description de l'article (fournie par l'utilisateur, à utiliser si l'URL est inaccessible) :\n"${item.description.trim()}"`
     : '';
 
+  const languageInstruction = lang === 'en'
+    ? '\nIMPORTANT : réponds en anglais — tous les champs texte du JSON (shortSummary, tips, titles, etc.) doivent être rédigés en anglais.\n'
+    : '';
+
   return `Tu es un expert en revente de seconde main. Analyse cet article et réponds UNIQUEMENT en JSON valide (sans markdown, sans backticks, sans texte avant ou après).
+${languageInstruction}
 
 Article : "${item.titre}"
 Catégorie : ${item.type}
@@ -272,12 +278,13 @@ export async function analyzeItem(
   apiKey: string,
   model: string,
   fallbackKeys?: AIFallbackKey[],
+  lang: Lang = 'fr',
 ): Promise<WebSearchResult> {
   if (!apiKey) throw new Error('Clé API manquante — configurez-la dans les Paramètres.');
 
   const platformName = platform?.label ?? 'une plateforme de revente';
   const platformUrl = platform?.url;
-  const prompt = buildPrompt(item, platformName, platformUrl);
+  const prompt = buildPrompt(item, platformName, platformUrl, lang);
 
   // File de tentatives : provider principal + jusqu'à 2 fallbacks
   const attempts: { provider: AIProvider; apiKey: string; model: string }[] = [

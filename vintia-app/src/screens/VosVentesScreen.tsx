@@ -3,6 +3,7 @@ import type { Item, Platform, AISettings, UserProfile } from '../types';
 import { theme } from '../theme';
 import { useItems, usePlatforms, useAISettings, useUserProfile } from '../hooks/useSupabaseData';
 import { useTutorial } from '../contexts/TutorialContext';
+import { useLang } from '../contexts/LanguageContext';
 import TopBar from '../components/TopBar';
 import SideNav from '../components/SideNav';
 import MainContent from '../components/MainContent';
@@ -34,6 +35,7 @@ const VosVentesScreen: React.FC<VosVentesScreenProps> = ({
   const { items, setItems, loading: itemsLoading, saveItem, deleteItem, updateItem } = useItems(userId);
   const { platforms, addPlatform, reorderPlatforms, updatePlatform, deletePlatform } = usePlatforms(userId);
   const { registerAppApi } = useTutorial();
+  const { lang } = useLang();
 
   const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(null);
 
@@ -71,7 +73,7 @@ const VosVentesScreen: React.FC<VosVentesScreenProps> = ({
     let cancelled = false;
     setDailyRecoLoading(true);
     setDailyRecoError(null);
-    getDailyRecommendation(userId, items, platforms, aiSettings)
+    getDailyRecommendation(userId, items, platforms, aiSettings, false, lang)
       .then(r => { if (!cancelled) { setDailyReco(r); setDailyRecoLoading(false); } })
       .catch((e: unknown) => {
         if (!cancelled) {
@@ -81,7 +83,7 @@ const VosVentesScreen: React.FC<VosVentesScreenProps> = ({
       });
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, aiSettings.apiKey]);
+  }, [userId, aiSettings.apiKey, lang]);
 
   const handleRefreshReco = async () => {
     if (!aiSettings.apiKey) return;
@@ -89,7 +91,7 @@ const VosVentesScreen: React.FC<VosVentesScreenProps> = ({
     setDailyRecoLoading(true);
     setDailyRecoError(null);
     try {
-      const r = await getDailyRecommendation(userId, itemsRef.current, platforms, aiSettings, true);
+      const r = await getDailyRecommendation(userId, itemsRef.current, platforms, aiSettings, true, lang);
       setDailyReco(r);
     } catch (e: unknown) {
       setDailyRecoError((e as Error)?.message ?? 'Erreur');
@@ -161,7 +163,7 @@ const VosVentesScreen: React.FC<VosVentesScreenProps> = ({
       const result = await analyzeItem(
         item, platform,
         aiSettings.provider, aiSettings.apiKey, aiSettings.model,
-        aiSettings.fallbackKeys,
+        aiSettings.fallbackKeys, lang,
       );
       setPerplexityResult(result);
 

@@ -119,7 +119,26 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({ onComplete, onSkip })
       placement: 'bottom',
     },
 
-    // ── 5. Colonnes prix ──────────────────────────────────────────────────────
+    // ── 5. Ajouter une ligne (vue d'ensemble de la ligne) ───────────────────────
+    {
+      target: '[data-testid="tutorial-item-row"]',
+      targetWaitTimeout: 3000,
+      content: (
+        <div>
+          <h4 style={h4}>{t.tutorialAddRowTitle}</h4>
+          <p style={p}>{t.tutorialAddRowBody}</p>
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div><span style={{ ...tag, background: '#F3F4F6', color: '#374151' }}>{t.tutorialAddRowTitleField}</span><span style={p}>{t.tutorialAddRowTitleFieldDesc}</span></div>
+            <div><span style={{ ...tag, background: '#DBEAFE', color: '#1D4ED8' }}>{t.tutorialAddRowPlatform}</span><span style={p}>{t.tutorialAddRowPlatformDesc}</span></div>
+            <div><span style={{ ...tag, background: '#DCFCE7', color: '#16A34A' }}>{t.tutorialAddRowPrices}</span><span style={p}>{t.tutorialAddRowPricesDesc}</span></div>
+          </div>
+        </div>
+      ),
+      placement: 'bottom',
+      spotlightPadding: 4,
+    },
+
+    // ── 6. Colonnes prix ──────────────────────────────────────────────────────
     {
       target: '[data-testid="tutorial-col-prices"]',
       content: (

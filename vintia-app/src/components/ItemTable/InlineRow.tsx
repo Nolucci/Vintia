@@ -52,8 +52,8 @@ const NumInput: React.FC<{
 );
 
 // ── Cellule finances en 3 sous-colonnes alignées (lecture) ───────────────
-const FinCol: React.FC<{ label: string; val: number | null; color: string; prefix?: string }> = ({ label, val, color, prefix = '' }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, flex: 1, minWidth: 0 }}>
+const FinCol: React.FC<{ label: string; val: number | null; color: string; prefix?: string; testId?: string }> = ({ label, val, color, prefix = '', testId }) => (
+  <div data-testid={testId} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, flex: 1, minWidth: 0 }}>
     <span style={{ fontSize: 9, fontWeight: 700, color: hexAlpha(color, 1), textTransform: 'uppercase', letterSpacing: 0.4, lineHeight: 1 }}>
       {label}
     </span>
@@ -75,11 +75,11 @@ const FinancesCell: React.FC<{
   const { t } = useLang();
   return (
     <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, width: '100%', paddingInline: 4 }}>
-      <FinCol label={t.rowPriceAchat} val={prixAchat}  color={RED} />
+      <FinCol label={t.rowPriceAchat} val={prixAchat}  color={RED} testId="tutorial-item-price-achat" />
       <FinSep />
-      <FinCol label={t.rowPriceVente} val={prixVente}  color={theme.accent.blue} />
+      <FinCol label={t.rowPriceVente} val={prixVente}  color={theme.accent.blue} testId="tutorial-item-price-vente" />
       <FinSep />
-      <FinCol label={t.rowPriceVendu} val={prixVendu}  color={GREEN} />
+      <FinCol label={t.rowPriceVendu} val={prixVendu}  color={GREEN} testId="tutorial-item-price-vendu" />
     </div>
   );
 };
@@ -641,6 +641,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
     <div ref={rowRef} style={{ position: 'relative', marginBottom: 2 }}>
       {/* ── Ligne principale ── */}
       <div
+        data-testid={item.id.startsWith('tutorial_mock_') ? 'tutorial-item-row' : undefined}
         style={{
           display: 'flex', alignItems: 'stretch',
           height: ROW_H,
@@ -734,13 +735,15 @@ const InlineRow: React.FC<InlineRowProps> = ({
             <div style={{ minWidth: 0, width: '100%' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
                 <Tooltip text={t.rowDblClickToEdit} placement="bottom">
-                  <span style={{
-                    fontSize: 15, fontWeight: isChild ? 500 : 600,
-                    color: draft.transaction === 'perdu' ? '#8A9BA8' : theme.text.primary,
-                    textDecoration: draft.transaction === 'perdu' ? 'line-through' : 'none',
-                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    display: 'block', cursor: 'text', flex: 1, minWidth: 0,
-                  }}>
+                  <span
+                    data-testid="tutorial-item-title"
+                    style={{
+                      fontSize: 15, fontWeight: isChild ? 500 : 600,
+                      color: draft.transaction === 'perdu' ? '#8A9BA8' : theme.text.primary,
+                      textDecoration: draft.transaction === 'perdu' ? 'line-through' : 'none',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      display: 'block', cursor: 'text', flex: 1, minWidth: 0,
+                    }}>
                     {draft.titre || <span style={{ opacity: 0.55 }}>{t.rowUntitled}</span>}
                   </span>
                 </Tooltip>
@@ -770,7 +773,7 @@ const InlineRow: React.FC<InlineRowProps> = ({
                 </Tooltip>
               </div>
               {draft.platformId && (
-                <span style={{ fontSize: 10, color: '#000000', display: 'block' }}>
+                <span data-testid="tutorial-item-platform" style={{ fontSize: 10, color: '#000000', display: 'block' }}>
                   {platforms.find(p => p.id === draft.platformId)?.label}
                 </span>
               )}

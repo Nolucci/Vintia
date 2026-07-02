@@ -1,4 +1,5 @@
 import type { Item, Platform, AISettings } from '../types';
+import type { Lang } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 
 export interface DailyRecommendation {
@@ -142,12 +143,13 @@ function buildContext(items: Item[], platforms: Platform[]): string {
   return lines.join('\n');
 }
 
-function buildPrompt(context: string): string {
+function buildPrompt(context: string, lang: Lang = 'fr'): string {
+  const outputLanguage = lang === 'en' ? 'anglais' : 'français';
   return `Tu es un conseiller expert en revente de seconde main (Vinted, Leboncoin, eBay...). Voici les données réelles de l'utilisateur pour aujourd'hui :
 
 ${context}
 
-Génère une recommandation quotidienne en français, courte et directement actionnable (4 à 6 phrases maximum). Elle doit répondre à :
+Génère une recommandation quotidienne en ${outputLanguage}, courte et directement actionnable (4 à 6 phrases maximum). Elle doit répondre à :
 1. Que faire aujourd'hui en priorité ? (ajuster un prix, publier, relancer une annonce...)
 2. Quoi proposer en fonction de la demande actuelle et des catégories les plus rentables ?
 3. Que retenir des marges de la veille et comment s'améliorer ?
@@ -238,6 +240,7 @@ export async function getDailyRecommendation(
   platforms: Platform[],
   aiSettings: AISettings,
   force = false,
+  lang: Lang = 'fr',
 ): Promise<DailyRecommendation> {
   if (!force) {
     const cached = await loadCached(userId);
@@ -249,7 +252,7 @@ export async function getDailyRecommendation(
   }
 
   const context = buildContext(items, platforms);
-  const prompt = buildPrompt(context);
+  const prompt = buildPrompt(context, lang);
   const text = await callAI(prompt, aiSettings);
 
   const reco: DailyRecommendation = {
