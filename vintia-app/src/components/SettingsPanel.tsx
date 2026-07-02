@@ -140,6 +140,21 @@ const PROVIDERS: ProviderMeta[] = [
     hasWebSearch: false,
   },
   {
+    value: 'groq',
+    label: 'Groq',
+    color: '#F55036',
+    icon: 'bolt',
+    defaultModel: 'llama-3.3-70b-versatile',
+    modelOptions: [
+      { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B Versatile' },
+      { value: 'llama-3.1-8b-instant', label: 'Llama 3.1 8B Instant' },
+      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' },
+    ],
+    keyPlaceholder: 'gsk_...',
+    keyHint: 'console.groq.com',
+    hasWebSearch: false,
+  },
+  {
     value: 'autre',
     label: 'Autre',
     color: '#8A9BA8',

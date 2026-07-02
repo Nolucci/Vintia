@@ -203,6 +203,25 @@ async function callGrok(prompt: string, apiKey: string, model: string): Promise<
   return data?.choices?.[0]?.message?.content ?? '';
 }
 
+// ── Groq ──────────────────────────────────────────────────────────────────
+async function callGroq(prompt: string, apiKey: string, model: string): Promise<string> {
+  const m = model || 'llama-3.3-70b-versatile';
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: m,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any)?.error?.message ?? `Groq error ${res.status}`);
+  }
+  const data = await res.json();
+  return data?.choices?.[0]?.message?.content ?? '';
+}
+
 // ── Perplexity ────────────────────────────────────────────────────────────
 async function callPerplexity(prompt: string, apiKey: string, model: string): Promise<{ text: string; sources: { title: string; url: string }[] }> {
   const m = model || 'sonar-pro';
@@ -232,6 +251,7 @@ async function callProvider(provider: AIProvider, apiKey: string, model: string,
     case 'anthropic':  return callAnthropic(prompt, apiKey, model);
     case 'mistral':    return callMistral(prompt, apiKey, model);
     case 'grok':       return callGrok(prompt, apiKey, model);
+    case 'groq':       return callGroq(prompt, apiKey, model);
     case 'perplexity': return (await callPerplexity(prompt, apiKey, model)).text;
     default:           return callOpenAI(prompt, apiKey, model);
   }
@@ -267,7 +287,7 @@ function parseStructured(text: string, providerLabel: string, usedFallback: bool
 
 const PROVIDER_LABELS: Record<AIProvider, string> = {
   gemini: 'Gemini', anthropic: 'Claude', openai: 'ChatGPT',
-  perplexity: 'Perplexity', mistral: 'Mistral', grok: 'Grok', autre: 'IA',
+  perplexity: 'Perplexity', mistral: 'Mistral', grok: 'Grok', groq: 'Groq', autre: 'IA',
 };
 
 // ── Point d'entrée unique — avec fallback chaîné ──────────────────────────

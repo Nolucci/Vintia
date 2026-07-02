@@ -62,6 +62,7 @@ export type AIProvider =
   | 'perplexity'
   | 'mistral'
   | 'grok'
+  | 'groq'
   | 'autre';
 
 export interface AIFallbackKey {

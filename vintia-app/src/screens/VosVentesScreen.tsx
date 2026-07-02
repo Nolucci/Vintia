@@ -284,7 +284,7 @@ const VosVentesScreen: React.FC<VosVentesScreenProps> = ({
           itemUrl={perplexityItem.url || undefined}
           providerLabel={
             { gemini: 'Gemini', anthropic: 'Claude', openai: 'ChatGPT',
-              perplexity: 'Perplexity', mistral: 'Mistral', grok: 'Grok', autre: 'IA' }
+              perplexity: 'Perplexity', mistral: 'Mistral', grok: 'Grok', groq: 'Groq', autre: 'IA' }
             [aiSettings.provider] ?? 'IA'
           }
           loading={perplexityLoading}
